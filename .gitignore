@@ -7,3 +7,7 @@ src/sim_build
 src/__pycache__/
 src/results.xml
 src/user_config.tcl
+src/myhdl/parser.out
+src/myhdl/parsetab.py
+src/myhdl/tb.gtkw
+src/myhdl/work_*
