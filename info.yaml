@@ -18,14 +18,18 @@ yaml_version: 3.0
 #
 # Here is a great example: https://github.com/davidsiaw/tt02-davidsiaw-stackcalc/blob/38c5647f83aad2aec675d566aa3d67b98f0aac81/info.yaml
 documentation: 
-  author:       ""      # Your name
-  title:        ""      # Project title
-  language:     ""      # other examples include Verilog, Amaranth, VHDL, etc
-  description:  ""      # Short description of what your project does
+  author:       "Marco Merlin"             # Your name
+  title:        "DDPM/PWM"                 # Project title
+  language:     "myHDL, python, verilog"   # other examples include Verilog, Amaranth, VHDL, etc
+  description:  "An implementation of a DDPM and PWM modulator with myHDL."  # Short description of what your project does
 
 # Longer description of how the project works. You can use standard markdown format.
   how_it_works: |
-      Explain how your project works
+      This project implements a DDPM modulator, as described in the article
+      "All-Digital High Resolution D/A Conversion by Dyadic Digital Pulse Modulation" from P.Crovetti.
+      (https://www.researchgate.net/publication/309012492_All-Digital_High_Resolution_DA_Conversion_by_Dyadic_Digital_Pulse_Modulation/citations).
+      A PWM modulator is added too, to provide a direct comparison.
+      The DDPM and PWM modulator share the same counter, to reduce gate count.
 
 # Instructions on how someone could test your project, include things like what buttons do what and how to set the clock if needed
   how_to_test:  |
