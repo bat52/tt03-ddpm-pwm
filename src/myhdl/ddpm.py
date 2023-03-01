@@ -16,6 +16,32 @@ from pueda.gtkw import gen_gtkw
 from pueda.yosys import yosys
 
 @block
+def bat52_pwm_ddpm_top( io_in, io_out ):
+    clk = Signal(bool(0))
+    resetn = ResetSignal(bool(0), active=False, isasync=True)
+    inval = Signal(intbv(0)[6:])
+    pwm = Signal(bool(0))
+    ddpm = Signal(bool(0))
+    empty_out = Signal(intbv(0)[5:])
+    outs = ConcatSignal(clk, empty_out, ddpm, pwm)
+
+    pwm_ddpm_i = pwm_ddpm(clk = clk, resetn = resetn, inval = inval, 
+             pwm = pwm, ddpm   = ddpm, 
+             nbits = 6, ddpm_en = True)
+    
+    @always_comb
+    def in_proc():
+        clk.next = io_in[0]
+        resetn.next = io_in[1]
+        inval.next = io_in[7:2]    
+
+    @always_comb
+    def out_proc():
+        io_out.next = outs        
+
+    return instances()
+
+@block
 def pwm_ddpm(clk, resetn, nbits = 4, inval = Signal(intbv(0)[4:]), pwm=Signal(bool(0)), ddpm = Signal(bool(0)), ddpm_en = True):
     count          =  Signal( intbv(2**nbits - 1)[nbits:] )
     
@@ -293,6 +319,20 @@ def test_main(period = 10, nbits=4, convert_en = False, dump_en = True,
 
     pass
 
+# block
+def tt_top_gen(dump_en = True):
+    work = get_clean_work('tt_top', makedir=True)
+
+    # generate TT top
+    top_i  = bat52_pwm_ddpm_top( Signal(intbv(0)[8:]), Signal(intbv(0)[8:]) )
+    top_i.convert(hdl='Verilog', trace = dump_en, path = work)
+
+    # copy generated files to top
+    os.system('cp %s/* ../' % work)
+    
+    pass
+    # return instances()
+
 def cli(argv=[]):
     parser = argparse.ArgumentParser(description='DDPM/PWM myHDL design')
     # register format options
@@ -303,11 +343,17 @@ def cli(argv=[]):
     parser.add_argument("-p", "--ddpm_en",    help="Disable DDPM output."         , action='store_false', default = True )
     parser.add_argument("-s", "--cosim_en",   help="Enable cosimulation of myhdl TB with verilog IP.", action='store_true' )
     parser.add_argument("-y", "--synth_en",   help="Enable synthesis."            , action='store_true')
+    parser.add_argument("-t", "--top_gen",    help="Generate TT3 top and TB."     , action='store_true')
+
 
     p = parser.parse_args(argv)
     return p
 
 if __name__ == "__main__":
     p = cli(sys.argv[1:])
-    test_main(nbits = p.nbits, 
+
+    if p.top_gen:
+        tt_top_gen()
+    else:
+        test_main(nbits = p.nbits, 
               convert_en=p.convert_en, dump_en=p.dump_en, ddpm_en = p.ddpm_en, cosim_en = p.cosim_en, synth_en = p.synth_en)
