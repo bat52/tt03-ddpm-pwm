@@ -297,7 +297,7 @@ def cli(argv=[]):
     parser = argparse.ArgumentParser(description='DDPM/PWM myHDL design')
     # register format options
     
-    parser.add_argument("-n", "--nbits",      help="#bits ", type=int, default = 4)
+    parser.add_argument("-n", "--nbits",      help="#bits ", type=int, default = 6)
     parser.add_argument("-d", "--dump_en",    help="Dump waveforms in simulation.", action='store_true' )
     parser.add_argument("-c", "--convert_en", help="Enable conversion to verilog.", action='store_true' )
     parser.add_argument("-p", "--ddpm_en",    help="Disable DDPM output."         , action='store_false', default = True )
