@@ -5,7 +5,7 @@ project:
 
 # If using an HDL, set wokwi_id as 0 and uncomment and list your source files here. 
 # Source files must be in ./src and you must list each source file separately
-#  source_files:        
+  source_files:        
     - pwm_ddpm.v
     - pwm_ddpm_top.v
   top_module:  "bat52_pwm_ddpm_top"      # put the name of your top module here, make it unique by prepending your github username
