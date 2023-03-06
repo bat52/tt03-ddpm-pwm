@@ -22,12 +22,13 @@ def bat52_pwm_ddpm_top( io_in, io_out ):
     inval = Signal(intbv(0)[6:])
     pwm = Signal(bool(0))
     ddpm = Signal(bool(0))
-    empty_out = Signal(intbv(0)[5:])
-    outs = ConcatSignal(clk, empty_out, ddpm, pwm)
+    count_out = Signal(intbv(0)[5:])
+    outs = ConcatSignal(count_out, ddpm, pwm)
 
     pwm_ddpm_i = pwm_ddpm(clk = clk, resetn = resetn, inval = inval, 
              pwm = pwm, ddpm   = ddpm, 
-             nbits = 6, ddpm_en = True)
+             nbits = 6, ddpm_en = True,
+             count_out = count_out)
     
     @always_comb
     def in_proc():
@@ -42,7 +43,11 @@ def bat52_pwm_ddpm_top( io_in, io_out ):
     return instances()
 
 @block
-def pwm_ddpm(clk, resetn, nbits = 4, inval = Signal(intbv(0)[4:]), pwm=Signal(bool(0)), ddpm = Signal(bool(0)), ddpm_en = True):
+def pwm_ddpm(clk, resetn, nbits = 4, 
+             inval = Signal(intbv(0)[4:]), pwm=Signal(bool(0)), 
+             ddpm = Signal(bool(0)), ddpm_en = True,
+             count_out = Signal(intbv(0)[4:])):
+    
     count          =  Signal( intbv(2**nbits - 1)[nbits:] )
     
     if ddpm_en:
@@ -65,6 +70,10 @@ def pwm_ddpm(clk, resetn, nbits = 4, inval = Signal(intbv(0)[4:]), pwm=Signal(bo
         else:
             pwm.next = 0
         pass
+
+    @always_comb
+    def count_out_proc():
+        count_out.next = count
 
     if ddpm_en:
         @always_comb
@@ -164,15 +173,16 @@ def pwm_check(clk, resetn, nbits, pwm_i, pwm_o, inst_name = '', posedge_en = Tru
 def tb(period = 10, nbits = 4, convert_en = False, work = './',
        pwm_cycles_per_code = 4, cosim_en = False, ddpm_en = False, dump_en = True, synth_en = False):
     
-    inval    = Signal(intbv(2**(nbits-1), 0, 2**nbits -1 )[nbits:])
-    pwm_out  = Signal(bool(0))
-    ddpm_out = Signal(bool(0))
-    resetn   = ResetSignal(bool(0), active=False, isasync=True)
-    clk      = Signal(bool(0))
-    duration = (2**nbits) * pwm_cycles_per_code * int(period)
+    inval     = Signal(intbv(2**(nbits-1), 0, 2**nbits -1 )[nbits:])
+    pwm_out   = Signal(bool(0))
+    ddpm_out  = Signal(bool(0))
+    resetn    = ResetSignal(bool(0), active=False, isasync=True)
+    clk       = Signal(bool(0))
+    duration  = (2**nbits) * pwm_cycles_per_code * int(period)
+    count_out = Signal(intbv(0)[nbits:])
 
     # if not(cosim_en):
-    pwm_i  = pwm_ddpm(      clk,resetn, nbits, inval, pwm_out,  ddpm_out, ddpm_en = ddpm_en)
+    pwm_i  = pwm_ddpm(      clk,resetn, nbits, inval, pwm_out,  ddpm_out, ddpm_en = ddpm_en, count_out = count_out)
     if convert_en or cosim_en or synth_en:
         pwm_i.convert(hdl='Verilog', trace = dump_en, path = work)
         if synth_en:
@@ -201,7 +211,7 @@ def tb(period = 10, nbits = 4, convert_en = False, work = './',
         else:
             src_dirs=[work]
 
-        ports={'clk':clk, 'resetn':resetn, 'inval':inval, 'pwm': pwm_out,  'ddpm':ddpm_out}
+        ports={'clk':clk, 'resetn':resetn, 'inval':inval, 'pwm': pwm_out,  'ddpm':ddpm_out, 'count_out' : count_out}
         simname='ddpm'        
 
         pwm_h = myhdl_cosim_wrapper(topfile=topfile, topmodule=topmodule, src_dirs=src_dirs, simname=simname, duration=duration)
