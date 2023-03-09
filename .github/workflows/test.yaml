@@ -19,13 +19,20 @@ jobs:
         python3 -V
 
     # install oss fpga tools
-    - name: install oss-cad-suite
-      uses: YosysHQ/setup-oss-cad-suite@v2
-      with:
-          python-override: true
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+    # - name: install oss-cad-suite
+    #  uses: YosysHQ/setup-oss-cad-suite@v2
+    #  with:
+    #      python-override: true
+    #      github-token: ${{ secrets.GITHUB_TOKEN }}
+    #- run: | 
+    #    iverilog -V
+
+    # install oss fpga tools
+    - name: install iverilog     
     - run: | 
+        sudo apt install iverilog
         iverilog -V
+        iverilog-vpi -h
 
     # myhdl and pueda
     - name: setup myhdl and pueda
