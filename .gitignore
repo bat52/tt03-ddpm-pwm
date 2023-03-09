@@ -9,5 +9,6 @@ src/results.xml
 src/user_config.tcl
 src/myhdl/parser.out
 src/myhdl/parsetab.py
-src/myhdl/tb.gtkw
+*.gtkw
 src/myhdl/work_*
+*.pyc
