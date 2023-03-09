@@ -41,7 +41,8 @@ jobs:
         cd ./src/myhdl
         ls
         python3 -V
-        python3 ./ddpm_top.py -d -c -s -m
+        python3 ./ddpm_top.py -d -c -m
+        # python3 ./ddpm_top.py -d -c -s -m
 
     - name: upload vcd
       if: success() || failure()
