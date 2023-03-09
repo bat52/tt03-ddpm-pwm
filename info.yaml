@@ -20,13 +20,17 @@ documentation:
   author:       "Marco Merlin"             # Your name
   title:        "DDPM/PWM"                 # Project title
   language:     "myHDL, python, verilog"   # other examples include Verilog, Amaranth, VHDL, etc
-  description:  "An implementation of a DDPM and PWM modulator with myHDL."  # Short description of what your project does
+  description:  "An implementation of a DDPM and PWM modulator with python libraries myHDL and pueda."  # Short description of what your project does
 
 # Longer description of how the project works. You can use standard markdown format.
   how_it_works: |
-      This project implements a DDPM modulator, as described in the article
-      "All-Digital High Resolution D/A Conversion by Dyadic Digital Pulse Modulation" from P.Crovetti.
-      (https://www.researchgate.net/publication/309012492_All-Digital_High_Resolution_DA_Conversion_by_Dyadic_Digital_Pulse_Modulation/citations).
+      This project implements a DDPM modulator, as described in the articles:
+      
+      - "Standard Cell-Based Ultra-Compact DACs in 40nm CMOS", Aiello et al.
+      https://www.researchgate.net/publication/335513725_Standard_Cell-Based_Ultra-Compact_DACs_in_40nm_CMOS
+      - "All-Digital High Resolution D/A Conversion by Dyadic Digital Pulse Modulation", Crovetti.
+      (https://www.researchgate.net/publication/309012492_All-Digital_High_Resolution_DA_Conversion_by_Dyadic_Digital_Pulse_Modulation/citations)
+
       A PWM modulator is added too, to provide a direct comparison.
       The DDPM and PWM modulator share the same counter, to reduce gate count.
 
@@ -46,19 +50,19 @@ documentation:
     - in5
 # A description of what the outputs do
   outputs:
-    - ddpm/segment a
-    - pwm/segment b
-    - segment c
-    - segment d
-    - segment e
-    - segment f
-    - segment g
-    - clock_out/dot
+    - ddpm     / segment a
+    - pwm      / segment b
+    - count[0] / segment c
+    - count[1] / segment d
+    - count[2] / segment e
+    - count[3] / segment f
+    - count[4] / segment g
+    - count[5] / dot
 
 # The following fields are optional
   tag:          "pwm, ddpm"     # comma separated list of tags: test encryption, experiment, clock, animation, utility, industrial, pwm, fpga, alu, microprocessor, risc, riscv, sensor, signal generator, fft, filter, music, bcd, sound, serial, timer, random number generator, calculator, decoder, counter, puzzle, multiplier, game, oscillator,
   external_hw:  "clock source"  # Describe any external hardware needed
   discord:      ""              # Your discord handle, used for communication and automatically assigning tapeout role after a submission
   doc_link:     "https://github.com/bat52/tt03-ddpm-pwm/blob/main/README.md"   # URL to longer form documentation, eg the README.md in your repository
-  clock_hz:     10000           # Clock frequency in Hz (if required)
+  clock_hz:     12500           # Clock frequency in Hz (if required)
   picture:      ""              # relative path to a picture in your repository
