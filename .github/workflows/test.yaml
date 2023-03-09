@@ -1,0 +1,41 @@
+name: test
+# either manually started, or on a schedule
+on: [ push, workflow_dispatch ]
+jobs:
+  test:
+    # ubuntu
+    runs-on: ubuntu-latest
+    steps:
+    # need the repo checked out
+    - name: checkout repo
+      uses: actions/checkout@v3
+
+    # need python
+    - name: setup python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    - run: | 
+        pip3 install git+https://github.com/myhdl/myhdl.git@master
+        pip3 install git+https://github.com/bat52/pueda.git@master
+
+    # install oss fpga tools
+    - name: install oss-cad-suite
+      uses: YosysHQ/setup-oss-cad-suite@v2
+      with:
+          python-override: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+    - run: | 
+        iverilog -V
+
+    - name: test
+      run: |
+        cd src/myhdl
+        ./ddpm_top.py -d -c -s -m
+
+    - name: upload vcd
+      if: success() || failure()
+      uses: actions/upload-artifact@v3
+      with:
+          name: test-vcd
+          path: src/work_icarus/bat52_pwm_ddpm_top.vcd
