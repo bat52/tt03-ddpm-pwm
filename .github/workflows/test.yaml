@@ -50,9 +50,9 @@ jobs:
         # python3 ./ddpm_top.py -c -m
         python3 ./ddpm_top.py -c -s -m # cosim on generated rtl
 
-    - name: upload vcd
-      if: success() || failure()
-      uses: actions/upload-artifact@v3
-      with:
-          name: test-vcd
-          path: src/work_icarus/bat52_pwm_ddpm_top.vcd
+    # - name: upload vcd
+    #  if: success() || failure()
+    #  uses: actions/upload-artifact@v3
+    #  with:
+    #      name: test-vcd
+    #      path: src/work_icarus/bat52_pwm_ddpm_top.vcd
