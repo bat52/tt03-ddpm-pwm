@@ -30,8 +30,10 @@ jobs:
 
     - name: test
       run: |
-        cd src/myhdl
-        ./ddpm_top.py -d -c -s -m
+        ls
+        cd ./src/myhdl
+        ls
+        python3 ./ddpm_top.py -d -c -s -m
 
     - name: upload vcd
       if: success() || failure()
