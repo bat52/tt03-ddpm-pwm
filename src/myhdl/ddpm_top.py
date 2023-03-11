@@ -15,6 +15,7 @@ from pueda.common import get_clean_work
 from pueda.gtkw import gen_gtkw
 
 from ddpm import pwm_ddpm, pwm_check
+from sine_lut import sine_lut
 
 NBIT_PWM   = 6
 TOP_DUT    = 'bat52_pwm_ddpm_top'
@@ -29,11 +30,15 @@ def bat52_pwm_ddpm_top( io_in, io_out ):
     pwm       = Signal(bool(0))
     ddpm      = Signal(bool(0))
     count_out = Signal(intbv(0)[NBIT_PWM:])
+    sine_out  = Signal(intbv(0)[NBIT_PWM:])
     
     pwm_ddpm_i = pwm_ddpm(clk = clk, resetn = resetn, inval = inval, 
              pwm = pwm, ddpm   = ddpm, 
              nbits = NBIT_PWM, ddpm_en = True,
              count_out = count_out)
+    
+    sine_lut_i = sine_lut(nbits_amplitude = NBIT_PWM, nbits_phase = NBIT_PWM,
+             in_index = count_out, sine_out = sine_out)
     
     @always_comb
     def in_proc():
@@ -45,7 +50,7 @@ def bat52_pwm_ddpm_top( io_in, io_out ):
     def out_proc():
         io_out.next[0] = pwm
         io_out.next[1] = ddpm
-        io_out.next[8:2] = count_out[6:0]
+        io_out.next[8:2] = sine_out[6:0]
 
     return instances()
 
