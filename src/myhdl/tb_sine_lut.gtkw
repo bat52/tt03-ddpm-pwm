@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
-[*] Sat Mar 11 16:50:25 2023
+[*] Sat Mar 11 16:57:09 2023
 [*]
 [dumpfile] "/media/marco/DATA/programming/rtl/ddpm/tt03-ddpm-pwm/src/myhdl/tb_sine_lut.vcd"
-[dumpfile_mtime] "Sat Mar 11 16:49:04 2023"
-[dumpfile_size] 3735
+[dumpfile_mtime] "Sat Mar 11 16:56:07 2023"
+[dumpfile_size] 3887
 [savefile] "/media/marco/DATA/programming/rtl/ddpm/tt03-ddpm-pwm/src/myhdl/tb_sine_lut.gtkw"
 [timestart] 0
 [size] 1000 600
 [pos] 200 59
-*-4.353341 16 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-4.516477 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] tb_sine_lut.
 [sst_width] 233
 [signals_width] 146
@@ -24,7 +24,6 @@ tb_sine_lut.index[5:0]
 tb_sine_lut.sine[5:0]
 @20000
 -
-@20001
 -
 [pattern_trace] 1
 [pattern_trace] 0

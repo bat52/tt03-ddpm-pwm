@@ -30,7 +30,8 @@ def sine_lut_pi2( nbits_phase = NBIT_LUT_PHASE-2, nbits_amplitude = NBIT_LUT_AMP
              sine_out = Signal(intbv(0)[NBIT_LUT_AMPLITUDE-2:])
             ):
     
-    normf = 2**(nbits_amplitude - 1) - 1
+    # normf = 2**(nbits_amplitude - 1) - 1
+    normf = 2**(nbits_amplitude) - 1
 
     lut_vals = []                    
     for idx in range(2**nbits_phase):
@@ -59,7 +60,7 @@ def sine_lut( nbits_amplitude = NBIT_LUT_AMPLITUDE, nbits_phase = NBIT_LUT_PHASE
 
     ## constants
     pi2           = 2**(nbits_phase-2)-1
-    dc            = pi2
+    dc            = 2**(nbits_amplitude-1)-1
 
     @always_comb
     def gen_index_pi2_proc():
