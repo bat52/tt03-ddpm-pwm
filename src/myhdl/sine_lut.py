@@ -3,7 +3,7 @@
 import sys
 # import os
 import argparse
-# import shutil
+import time
 
 # Import math Library
 import math 
@@ -96,8 +96,8 @@ def sine_lut( nbits_amplitude = NBIT_LUT_AMPLITUDE, nbits_phase = NBIT_LUT_PHASE
 
 @block
 def tb_sine_lut(nbits_amplitude = NBIT_LUT_AMPLITUDE, nbits_phase = NBIT_LUT_PHASE, period = 2, 
-                dump_en = False, convert_en = False, synth_en = False,
-                work = './'):
+                dump_en = False, convert_en = False, synth_en = False, cosim_en = False,
+                work = './', duration = 2**NBIT_LUT_PHASE):
 
     index = Signal(intbv(0)[nbits_phase:])
     sine  = Signal(intbv(0)[nbits_amplitude:])
@@ -110,6 +110,18 @@ def tb_sine_lut(nbits_amplitude = NBIT_LUT_AMPLITUDE, nbits_phase = NBIT_LUT_PHA
         sine_i.convert(hdl='Verilog', trace = dump_en, path = work)
         if synth_en:
             synth_out = yosys(top=TOP_DUT, src_dirs = [work], synth_en=synth_en, exclude_files=['%s.v' % TOP_TB])  
+
+    if cosim_en:
+        topmodule = TOP_TB
+        topfile   = topmodule + '.v'
+        src_dirs=[work]
+
+        ports={'in_index': index, 'sine_out': sine}
+        simname='sine_lut'        
+
+        sine_h = myhdl_cosim_wrapper(topfile=topfile, topmodule=topmodule, src_dirs=src_dirs, simname=simname, duration=duration)
+        # overwrite sine_i
+        sine_i = sine_h.dut_instance(ports=ports)
 
     @instance
     def geninput():        
@@ -128,7 +140,8 @@ def sine_lut_main(nbits_amplitude = NBIT_LUT_AMPLITUDE, nbits_phase = NBIT_LUT_P
 
     duration = 2**(nbits_phase)
     tb_i = tb_sine_lut(nbits_amplitude = nbits_amplitude, nbits_phase = nbits_phase,  
-                       dump_en = dump_en, convert_en = convert_en, synth_en = synth_en, work = work)
+                       dump_en = dump_en, convert_en = convert_en, synth_en = synth_en, 
+                       work = work, cosim_en = cosim_en, duration = duration)
 
     if not(cosim_en):
         tb_i.config_sim(trace=dump_en)
@@ -138,13 +151,19 @@ def sine_lut_main(nbits_amplitude = NBIT_LUT_AMPLITUDE, nbits_phase = NBIT_LUT_P
     else: # cosim_en
         cosim = Simulation( tb_i )
         cosim.run(duration)
-        #if dump_en:
-        #    cosim_view(nbits = nbits) 
+        if dump_en:
+            time.sleep(2)
+            cosim_view() 
     pass
 
 def sim_view():    
     vcd  = TOP_TB + '.vcd'
     gtkw = TOP_TB + '.gtkw'
+    vcd_view(vcd, savefname=gtkw) # , postcmd = ' &')    
+
+def cosim_view():    
+    vcd  = os.path.join( '../work_icarus', TOP_DUT + '.vcd')
+    gtkw = os.path.join( '../'           , TOP_DUT + '_cosim.gtkw')
     vcd_view(vcd, savefname=gtkw) # , postcmd = ' &')    
 
 def sine_lut_cli(argv=[]):
