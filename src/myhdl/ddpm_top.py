@@ -53,21 +53,6 @@ def bat52_pwm_ddpm_top( io_in, io_out ):
         io_out.next[8:2] = sine_out[6:0]
 
     return instances()
-
-"""
-def tt_top_gen(dump_en = True):
-    work = get_clean_work('tt_top', makedir=True)
-
-    # generate TT top
-    top_i  = bat52_pwm_ddpm_top( Signal(intbv(0)[8:]), Signal(intbv(0)[8:]) )
-    top_i.convert(hdl='Verilog', trace = dump_en, path = work)
-
-    # copy generated files to top
-    os.system('cp %s/* ../' % work)
-    
-    pass
-    # return instances()
-"""
     
 @block
 def tb_bat52_pwm_ddpm_top(period = 10, nbits = NBIT_PWM, convert_en = False, work = './',
@@ -244,9 +229,5 @@ def cli(argv=[]):
 
 if __name__ == "__main__":
     p = cli(sys.argv[1:])
-
-    # if p.top_gen:
-    #    tt_top_gen()
-
     bat52_pwm_ddpm_top_tb_test_main( convert_en=p.convert_en, dump_en=p.dump_en, cosim_en = p.cosim_en, 
                                     top_gen = p.top_gen, top_compare = p.top_compare)
