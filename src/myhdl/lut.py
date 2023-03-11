@@ -4,11 +4,14 @@ import os
 from myhdl import *
 
 from pueda.myhdl import *
-from pueda.common import get_clean_work, vcd_view
-from pueda.yosys import yosys
+from pueda.common import get_clean_work
+# from pueda.yosys import yosys
 
 LUT_NBIT_OUT = 8
 LUT_NBIT_IN  = 4
+
+LUT_TOP    = 'lut_module'
+LUT_TB_TOP = 'tb_%s' % LUT_TOP
 
 @block
 def lut_module(nbits_out=LUT_NBIT_OUT, nbits_in=LUT_NBIT_IN, 
@@ -38,15 +41,30 @@ def lut_module(nbits_out=LUT_NBIT_OUT, nbits_in=LUT_NBIT_IN,
 
 @block
 def tb_lut(work = './',
-           nbit_in = LUT_NBIT_IN, nbit_out = LUT_NBIT_OUT):
+           nbit_in = LUT_NBIT_IN, nbit_out = LUT_NBIT_OUT,
+           dump_en = False, cosim_en = False, duration = 2**LUT_NBIT_IN):
     
     lut_in  = Signal(intbv(0)[nbit_in:])
     lut_out = Signal(intbv(0)[nbit_out:])
 
     lut_i = lut_module(lut_in = lut_in, lut_out = lut_out,
                        nbits_in = nbit_in, nbits_out = nbit_out)
-    # convert to check
-    lut_i.convert(hdl='Verilog', path = work)
+    
+    # convert to check resulting verilog
+    lut_i.convert(hdl='Verilog', path = work, trace = dump_en)
+
+    # else:
+    if cosim_en:
+        topmodule=LUT_TB_TOP
+        topfile  = topmodule + '.v'
+        src_dirs=[work]
+
+        ports={'lut_in':lut_in, 'lut_out':lut_out}
+        simname='lut_sim'        
+
+        lut_h = myhdl_cosim_wrapper(topfile=topfile, topmodule=topmodule, src_dirs=src_dirs, simname=simname, duration=duration)
+        # overwrite lut_i
+        lut_i = lut_h.dut_instance(ports=ports)
 
     @instance
     def gen_lut_input_proc():        
@@ -54,20 +72,19 @@ def tb_lut(work = './',
             lut_in.next = val
             yield delay(int(1))     
             print('IN: %d, OUT: %d' % (lut_in, lut_out) )
-            # assert(lut_out == lut_in)
+            assert(lut_out == lut_in)
 
     return instances()
 
-
-def main(dump_en = False):
+def main(dump_en = False, cosim_en = True):
     work = get_clean_work('lut', makedir=True)
     os.system('rm *.vcd')
-    
-    tb_i = tb_lut(work = work)
 
-    duration = (2**LUT_NBIT_IN) -1 
+    duration = (2**LUT_NBIT_IN) 
+
+    tb_i = tb_lut(work = work, duration = duration, dump_en = dump_en, cosim_en = cosim_en)
     
-    if True: # not(cosim_en):
+    if not(cosim_en):
         tb_i.config_sim(trace=dump_en)
         tb_i.run_sim(duration=duration)
         # if dump_en:
