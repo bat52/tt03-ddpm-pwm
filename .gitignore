@@ -9,6 +9,7 @@ src/results.xml
 src/user_config.tcl
 src/myhdl/parser.out
 src/myhdl/parsetab.py
-*.gtkw
+tb_bat52_pwm_ddpm_top.gtkw
 src/myhdl/work_*
 *.pyc
+src/myhdl/tb.gtkw
