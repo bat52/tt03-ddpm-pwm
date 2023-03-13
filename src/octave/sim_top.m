@@ -8,11 +8,13 @@ fclock = 12.5; # khz
 nbit_pwm_phase = 6;
 nbit_sine_phase = 6;
 nbit_pwm_amplitude = 6;
+nbit_sd_amplitude = nbit_pwm_amplitude + 2;
 nperiods = 10;
 
 % parameters
-normf = 2^(nbit_pwm_amplitude-3) - 1;
-dc    = 2^(nbit_pwm_amplitude-3) - 1;
+normf = 2^(nbit_pwm_amplitude-1) - 1;
+dc  = 2^(nbit_pwm_amplitude-1) - 1;
+
 nbit_phase = nbit_pwm_phase + nbit_sine_phase;
 
 % generate time series
@@ -26,7 +28,7 @@ s = round( dc + normf * sin(2*pi*phase/(2^nbit_phase-1)) );
 % generate pwm
 pwm_s  = pwm_mod(s,nbit_pwm_phase);
 ddpm_s = ddpm_mod(s,nbit_pwm_phase);
-sd1_s  = sd1_mod(s,nbit_pwm_amplitude);  
+sd1_s  = sd1_mod(s,nbit_sd_amplitude);  
   
 if 1
   % time domain plot
