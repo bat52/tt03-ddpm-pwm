@@ -1,0 +1,32 @@
+[*]
+[*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
+[*] Mon Mar 13 23:07:55 2023
+[*]
+[dumpfile] "/media/marco/DATA/programming/rtl/ddpm/tt03-ddpm-pwm/src/myhdl/work_icarus/sd1_mod.vcd"
+[dumpfile_mtime] "Mon Mar 13 23:05:24 2023"
+[dumpfile_size] 4096
+[savefile] "/media/marco/DATA/programming/rtl/ddpm/tt03-ddpm-pwm/src/myhdl/work_icarus/sd1_mod.gtkw"
+[timestart] 0
+[size] 1000 600
+[pos] 417 106
+*-17.531025 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] tb_sd1_mod.
+[sst_width] 233
+[signals_width] 110
+[sst_expanded] 1
+[sst_vpaned_height] 144
+@28
+tb_sd1_mod.dut.clk
+tb_sd1_mod.dut.resetn
+@8022
+tb_sd1_mod.dut.inval[5:0]
+@20001
+-
+@20000
+-
+@28
+tb_sd1_mod.dut.sd_out
+@8022
+tb_sd1_mod.dut.delta[7:0]
+[pattern_trace] 1
+[pattern_trace] 0

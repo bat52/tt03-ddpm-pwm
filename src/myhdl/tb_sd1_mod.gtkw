@@ -1,0 +1,31 @@
+[*]
+[*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
+[*] Mon Mar 13 22:51:00 2023
+[*]
+[dumpfile] "/media/marco/DATA/programming/rtl/ddpm/tt03-ddpm-pwm/src/myhdl/tb_sd1_mod.vcd"
+[dumpfile_mtime] "Mon Mar 13 22:50:31 2023"
+[dumpfile_size] 7984
+[savefile] "/media/marco/DATA/programming/rtl/ddpm/tt03-ddpm-pwm/src/myhdl/tb_sd1_mod.gtkw"
+[timestart] 0
+[size] 1526 836
+[pos] -1 -1
+*-4.543194 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] tb_sd1_mod.
+[sst_width] 233
+[signals_width] 142
+[sst_expanded] 1
+[sst_vpaned_height] 226
+@28
+tb_sd1_mod.counter_up0.clk
+tb_sd1_mod.resetn
+@8022
+tb_sd1_mod.counter_up0.count_out[5:0]
+tb_sd1_mod.sine_lut0.sine_out[5:0]
+@20001
+-
+@20000
+-
+@28
+tb_sd1_mod.sd1_mod0.sd_out
+[pattern_trace] 1
+[pattern_trace] 0
