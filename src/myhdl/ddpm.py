@@ -279,7 +279,7 @@ def gen_gtkw_ddpm_cosim(fname = 'tb.gtkw', nbits = 4):
     groups.append(
         {
         'gname'            : 'tb_pwm_ddpm.dut.',
-        'bit_signals'      : ['clk', 'resetn', 'pwm','ddpm'],
+        'bit_signals'      : ['clk', 'resetn', 'pwm','ddpm','sd_out'],
         'multibit_signals' : ['inval', 'count', 'ddpm_int_all']
         }
     )    
