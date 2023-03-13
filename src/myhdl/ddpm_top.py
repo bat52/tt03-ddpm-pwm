@@ -29,12 +29,14 @@ def bat52_pwm_ddpm_top( io_in, io_out ):
 
     pwm       = Signal(bool(0))
     ddpm      = Signal(bool(0))
+    sd        = Signal(bool(0))
+
     count_out = Signal(intbv(0)[NBIT_PWM:])
     sine_out  = Signal(intbv(0)[NBIT_PWM:])
     
     pwm_ddpm_i = pwm_ddpm(clk = clk, resetn = resetn, inval = inval, 
-             pwm = pwm, ddpm   = ddpm, 
-             nbits = NBIT_PWM, ddpm_en = True,
+             pwm = pwm, ddpm   = ddpm, sd_out = sd,
+             nbits = NBIT_PWM, ddpm_en = True, sd_en = True,
              count_out = count_out)
     
     sine_lut_i = sine_lut(nbits_amplitude = NBIT_PWM, nbits_phase = NBIT_PWM,
@@ -50,7 +52,8 @@ def bat52_pwm_ddpm_top( io_in, io_out ):
     def out_proc():
         io_out.next[0] = pwm
         io_out.next[1] = ddpm
-        io_out.next[8:2] = sine_out[6:0]
+        io_out.next[2] = sd
+        io_out.next[8:3] = sine_out[6:1]
 
     return instances()
     
@@ -62,6 +65,7 @@ def tb_bat52_pwm_ddpm_top(period = 10, nbits = NBIT_PWM, convert_en = False, wor
     inval     = Signal(intbv(0)[nbits:])
     pwm_out   = Signal(bool(0))
     ddpm_out  = Signal(bool(0))
+    sd_out    = Signal(bool(0))
     resetn    = ResetSignal(bool(0), active=False, isasync=True)
     clk       = Signal(bool(0))
     duration  = (2**nbits) * pwm_cycles_per_code * int(period)
@@ -79,7 +83,8 @@ def tb_bat52_pwm_ddpm_top(period = 10, nbits = NBIT_PWM, convert_en = False, wor
         io_in.next[8:2] = inval[NBIT_PWM:0]
         pwm_out.next = io_out[0]
         ddpm_out.next = io_out[1]
-        count_out.next = io_out[8:2]
+        sd_out.next = io_out[2]
+        count_out.next = io_out[8:3]
 
     # checker instances
     pwm_c  = pwm_check(clk,resetn, nbits, inval, pwm_out,  'PWM')    
@@ -178,7 +183,7 @@ def gen_gtkw_ddpm(fname = 'tb.gtkw', nbits = 4):
     groups.append(
         {
         'gname'            : '%s.' % TOP_TB,
-        'bit_signals'      : ['clk', 'resetn', 'pwm_out'],
+        'bit_signals'      : ['clk', 'resetn', 'pwm_out','ddpm_out','sd_out'],
         'multibit_signals' : ['inval', 'count_out']
         }
     )    
@@ -205,7 +210,7 @@ def gen_gtkw_ddpm_cosim(fname = 'tb.gtkw', nbits = 4):
     groups.append(
         {
         'gname'            : '%s.dut.' % TOP_TB, 
-        'bit_signals'      : ['clk', 'resetn', 'pwm','ddpm'],
+        'bit_signals'      : ['clk', 'resetn', 'pwm','ddpm','sd'],
         'multibit_signals' : ['inval', 'count', 'ddpm_int_all']
         }
     )    
