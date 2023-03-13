@@ -15,6 +15,8 @@ from pueda.common import get_clean_work, vcd_view
 from pueda.gtkw import gen_gtkw
 from pueda.yosys import yosys
 
+from sd1_mod import sd1_mod
+
 @block
 def counter_down(clk, resetn, 
                  count_out = Signal(intbv(0)[4:]),
@@ -40,6 +42,7 @@ def counter_down(clk, resetn,
 def pwm_ddpm(clk, resetn, nbits = 4, 
              inval = Signal(intbv(0)[4:]), pwm=Signal(bool(0)), 
              ddpm = Signal(bool(0)), ddpm_en = True,
+             sd_out = Signal(bool(0)), sd_en = True,
              count_out = Signal(intbv(0)[4:])):
     
     counter_i = counter_down(clk, resetn, 
@@ -75,6 +78,9 @@ def pwm_ddpm(clk, resetn, nbits = 4,
                 ddpm.next = 1
             else:
                 ddpm.next = 0
+
+    if sd_en:
+        sd_i = sd1_mod(clk, resetn, nbits = nbits+1, inval = inval, sd_out = sd_out)
 
     return instances()
 
@@ -155,18 +161,24 @@ def pwm_check(clk, resetn, nbits, pwm_i, pwm_o, inst_name = '', posedge_en = Tru
 
 @block
 def tb(period = 10, nbits = 4, convert_en = False, work = './',
-       pwm_cycles_per_code = 4, cosim_en = False, ddpm_en = False, dump_en = True, synth_en = False):
+       pwm_cycles_per_code = 4, cosim_en = False, 
+       ddpm_en = False, sd_en = False,
+       dump_en = True, synth_en = False):
     
     inval     = Signal(intbv(2**(nbits-1), 0, 2**nbits -1 )[nbits:])
     pwm_out   = Signal(bool(0))
     ddpm_out  = Signal(bool(0))
+    sd_out    = Signal(bool(0))
     resetn    = ResetSignal(bool(0), active=False, isasync=True)
     clk       = Signal(bool(0))
     duration  = (2**nbits) * pwm_cycles_per_code * int(period)
     count_out = Signal(intbv(0)[nbits:])
 
     # if not(cosim_en):
-    pwm_i  = pwm_ddpm(      clk,resetn, nbits, inval, pwm_out,  ddpm_out, ddpm_en = ddpm_en, count_out = count_out)
+    pwm_i  = pwm_ddpm(      clk,resetn, nbits, inval, pwm_out,  ddpm_out, 
+                             ddpm_en = ddpm_en, sd_en = sd_en, sd_out = sd_out,
+                             count_out = count_out)
+    
     if convert_en or cosim_en or synth_en:
         pwm_i.convert(hdl='Verilog', trace = dump_en, path = work)
         if synth_en:
@@ -195,7 +207,7 @@ def tb(period = 10, nbits = 4, convert_en = False, work = './',
         else:
             src_dirs=[work]
 
-        ports={'clk':clk, 'resetn':resetn, 'inval':inval, 'pwm': pwm_out,  'ddpm':ddpm_out, 'count_out' : count_out}
+        ports={'clk':clk, 'resetn':resetn, 'inval':inval, 'pwm': pwm_out,  'ddpm':ddpm_out, 'count_out' : count_out, 'sd_out': sd_out}
         simname='ddpm'        
 
         pwm_h = myhdl_cosim_wrapper(topfile=topfile, topmodule=topmodule, src_dirs=src_dirs, simname=simname, duration=duration)
@@ -206,6 +218,9 @@ def tb(period = 10, nbits = 4, convert_en = False, work = './',
     pwm_c  = pwm_check(clk,resetn, nbits, inval, pwm_out,  'PWM')    
     if ddpm_en:
         ddpm_c = pwm_check(clk,resetn, nbits, inval, ddpm_out, 'DDPM', posedge_en = False)    
+
+    # if sd_en: # sd cannot be checked like this
+    #    sd_c = pwm_check(clk,resetn, nbits, inval, sd_out, 'SD')  
 
     @instance
     def genclk():
@@ -236,8 +251,8 @@ def gen_gtkw_ddpm(fname = 'tb.gtkw', nbits = 4):
     # pwm mod
     groups.append(
         {
-        'gname'            : 'tb.pwm.',
-        'bit_signals'      : ['clk', 'resetn', 'pwm_o'],
+        'gname'            : 'tb.pwm_ddpm0.',
+        'bit_signals'      : ['clk', 'resetn', 'pwm','ddpm','sd_out'],
         'multibit_signals' : ['inval', 'count']
         }
     )    
@@ -286,14 +301,15 @@ def cosim_view(nbits = 4):
     vcd_view(vcd, savefname=gtkw, block_en=False)    
 
 def test_main(period = 10, nbits=4, convert_en = False, dump_en = True, 
-              pwm_cycles_per_code = 3, ddpm_en = False, cosim_en = False, 
-              synth_en = False):
+              pwm_cycles_per_code = 3, 
+              ddpm_en = False, sd_en = False,
+              cosim_en = False, synth_en = False):
     
     work = get_clean_work('ddpm', makedir=True)
     os.system('rm *.vcd')
 
     tb_i = tb(period, nbits, 
-             convert_en = convert_en, ddpm_en = ddpm_en, dump_en = dump_en, cosim_en = cosim_en,
+             convert_en = convert_en, ddpm_en = ddpm_en, sd_en = sd_en, dump_en = dump_en, cosim_en = cosim_en,
              pwm_cycles_per_code = pwm_cycles_per_code, work = work, synth_en=synth_en)
     
     pwmcycle = 2**nbits
@@ -321,6 +337,7 @@ def cli(argv=[]):
     parser.add_argument("-d", "--dump_en",    help="Dump waveforms in simulation.", action='store_true' )
     parser.add_argument("-c", "--convert_en", help="Enable conversion to verilog.", action='store_true' )
     parser.add_argument("-p", "--ddpm_en",    help="Disable DDPM output."         , action='store_false', default = True )
+    parser.add_argument("-z", "--sd_en",      help="Disable sigma-delta output."  , action='store_false', default = True )
     parser.add_argument("-s", "--cosim_en",   help="Enable cosimulation of myhdl TB with verilog IP.", action='store_true' )
     parser.add_argument("-y", "--synth_en",   help="Enable synthesis."            , action='store_true')
     # parser.add_argument("-t", "--top_gen",    help="Generate TT3 top and TB."     , action='store_true')
@@ -332,4 +349,6 @@ if __name__ == "__main__":
     p = cli(sys.argv[1:])
 
     test_main(nbits = p.nbits, 
-       convert_en=p.convert_en, dump_en=p.dump_en, ddpm_en = p.ddpm_en, cosim_en = p.cosim_en, synth_en = p.synth_en)
+       convert_en=p.convert_en, dump_en=p.dump_en, 
+       ddpm_en = p.ddpm_en, sd_en = p.sd_en,
+       cosim_en = p.cosim_en, synth_en = p.synth_en)
