@@ -16,17 +16,11 @@ from pueda.gtkw import gen_gtkw
 from pueda.yosys import yosys
 
 @block
-def pwm_ddpm(clk, resetn, nbits = 4, 
-             inval = Signal(intbv(0)[4:]), pwm=Signal(bool(0)), 
-             ddpm = Signal(bool(0)), ddpm_en = True,
-             count_out = Signal(intbv(0)[4:])):
+def counter_down(clk, resetn, 
+                 count_out = Signal(intbv(0)[4:]),
+                 nbits = 4):
     
     count          =  Signal( intbv(2**nbits - 1)[nbits:] )
-    
-    if ddpm_en:
-        # ddpm signals 
-        ddpm_int       = [Signal( bool(0) ) for _ in range(nbits) ]
-        ddpm_int_all   = ConcatSignal(*ddpm_int)
 
     @always_seq(clk.negedge, reset=resetn)
     def count_proc():
@@ -37,22 +31,39 @@ def pwm_ddpm(clk, resetn, nbits = 4,
         pass
 
     @always_comb
+    def count_out_proc():
+        count_out.next = count
+
+    return instances()
+
+@block
+def pwm_ddpm(clk, resetn, nbits = 4, 
+             inval = Signal(intbv(0)[4:]), pwm=Signal(bool(0)), 
+             ddpm = Signal(bool(0)), ddpm_en = True,
+             count_out = Signal(intbv(0)[4:])):
+    
+    counter_i = counter_down(clk, resetn, 
+                 count_out = count_out,
+                 nbits = nbits)
+    
+    if ddpm_en:
+        # ddpm signals 
+        ddpm_int       = [Signal( bool(0) ) for _ in range(nbits) ]
+        ddpm_int_all   = ConcatSignal(*ddpm_int)
+
+    @always_comb
     def pwm_proc():
-        if count < inval:
+        if count_out < inval:
             pwm.next = 1
         else:
             pwm.next = 0
         pass
 
-    @always_comb
-    def count_out_proc():
-        count_out.next = count
-
     if ddpm_en:
         @always_comb
         def ddpm_int_proc():
             for bidx in range(nbits):
-                if (count & (2**(nbits-bidx)-1) ) == 2**(nbits-1-bidx):
+                if (count_out & (2**(nbits-bidx)-1) ) == 2**(nbits-1-bidx):
                     ddpm_int[bidx].next = inval[bidx]
                 else:
                     ddpm_int[bidx].next = 0
