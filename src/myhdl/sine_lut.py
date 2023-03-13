@@ -19,15 +19,15 @@ from pueda.yosys import yosys
 
 from lut import lut_module
 
-NBIT_LUT_PHASE     = 6
-NBIT_LUT_AMPLITUDE = 6
+NBIT_SINE_LUT_PHASE     = 6
+NBIT_SINE_LUT_AMPLITUDE = 6
 TOP_DUT            = 'sine_lut'
 TOP_TB             = 'tb_%s' % TOP_DUT
 
 @block
-def sine_lut_pi2( nbits_phase = NBIT_LUT_PHASE-2, nbits_amplitude = NBIT_LUT_AMPLITUDE-1,
-             in_index = Signal(intbv(0)[NBIT_LUT_PHASE-2:]),
-             sine_out = Signal(intbv(0)[NBIT_LUT_AMPLITUDE-2:])
+def sine_lut_pi2( nbits_phase = NBIT_SINE_LUT_PHASE-2, nbits_amplitude = NBIT_SINE_LUT_AMPLITUDE-1,
+             in_index = Signal(intbv(0)[NBIT_SINE_LUT_PHASE-2:]),
+             sine_out = Signal(intbv(0)[NBIT_SINE_LUT_AMPLITUDE-2:])
             ):
     
     # normf = 2**(nbits_amplitude - 1) - 1
@@ -47,9 +47,9 @@ def sine_lut_pi2( nbits_phase = NBIT_LUT_PHASE-2, nbits_amplitude = NBIT_LUT_AMP
 
 
 @block
-def sine_lut( nbits_amplitude = NBIT_LUT_AMPLITUDE, nbits_phase = NBIT_LUT_PHASE,
-             in_index = Signal(intbv(0)[NBIT_LUT_PHASE:]),
-             sine_out = Signal(intbv(0)[NBIT_LUT_AMPLITUDE:])
+def sine_lut( nbits_amplitude = NBIT_SINE_LUT_AMPLITUDE, nbits_phase = NBIT_SINE_LUT_PHASE,
+             in_index = Signal(intbv(0)[NBIT_SINE_LUT_PHASE:]),
+             sine_out = Signal(intbv(0)[NBIT_SINE_LUT_AMPLITUDE:])
             ):
     
     ## signals
@@ -95,9 +95,9 @@ def sine_lut( nbits_amplitude = NBIT_LUT_AMPLITUDE, nbits_phase = NBIT_LUT_PHASE
     return instances()
 
 @block
-def tb_sine_lut(nbits_amplitude = NBIT_LUT_AMPLITUDE, nbits_phase = NBIT_LUT_PHASE, period = 2, 
+def tb_sine_lut(nbits_amplitude = NBIT_SINE_LUT_AMPLITUDE, nbits_phase = NBIT_SINE_LUT_PHASE, period = 2, 
                 dump_en = False, convert_en = False, synth_en = False, cosim_en = False,
-                work = './', duration = 2**NBIT_LUT_PHASE):
+                work = './', duration = 2**NBIT_SINE_LUT_PHASE):
 
     index = Signal(intbv(0)[nbits_phase:])
     sine  = Signal(intbv(0)[nbits_amplitude:])
@@ -132,7 +132,7 @@ def tb_sine_lut(nbits_amplitude = NBIT_LUT_AMPLITUDE, nbits_phase = NBIT_LUT_PHA
             
     return instances()
 
-def sine_lut_main(nbits_amplitude = NBIT_LUT_AMPLITUDE, nbits_phase = NBIT_LUT_PHASE,
+def sine_lut_main(nbits_amplitude = NBIT_SINE_LUT_AMPLITUDE, nbits_phase = NBIT_SINE_LUT_PHASE,
                   dump_en = False, convert_en = False, cosim_en = False, synth_en = False):
 
     work = get_clean_work('sine', makedir=True)
@@ -170,8 +170,8 @@ def sine_lut_cli(argv=[]):
     parser = argparse.ArgumentParser(description='Sine generator myHDL design')
     # register format options
     
-    parser.add_argument("-n", "--nbits",      help="#bits phase resolution", type=int, default = NBIT_LUT_PHASE)
-    parser.add_argument("-r", "--resolution", help="#bits amplitude resolution", type=int, default = NBIT_LUT_AMPLITUDE)
+    parser.add_argument("-n", "--nbits",      help="#bits phase resolution", type=int, default = NBIT_SINE_LUT_PHASE)
+    parser.add_argument("-r", "--resolution", help="#bits amplitude resolution", type=int, default = NBIT_SINE_LUT_AMPLITUDE)
     parser.add_argument("-d", "--dump_en",    help="Dump waveforms in simulation.", action='store_true' )
     parser.add_argument("-c", "--convert_en", help="Enable conversion to verilog.", action='store_true' )
     parser.add_argument("-s", "--cosim_en",   help="Enable cosimulation of myhdl TB with verilog IP.", action='store_true' )

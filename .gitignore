@@ -14,3 +14,4 @@ src/myhdl/work_*
 *.pyc
 src/myhdl/tb.gtkw
 src/myhdl/chatgpt/*
+src/myhdl/sd_bak.py
