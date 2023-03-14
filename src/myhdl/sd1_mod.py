@@ -28,16 +28,20 @@ SD1_TB_TOP = 'tb_' + SD1_TOP
 @block
 def counter_up(clk, resetn, 
                  count_out = Signal(intbv(0)[4:]),
+                 count_en = Signal(bool(1)),
                  nbits = 4):
     
     count          =  Signal( intbv(0)[nbits:] )
 
     @always_seq(clk.negedge, reset=resetn)
     def count_proc():
-        if count < count.max-1:
-            count.next = count + 1            
+        if count_en:
+            if count < count.max-1:
+                count.next = count + 1            
+            else:
+                count.next = count.min
         else:
-            count.next = count.min
+            count.next = count
         pass
 
     @always_comb
