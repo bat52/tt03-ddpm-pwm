@@ -4,8 +4,6 @@ reg [7:0] io_in;
 wire [7:0] io_out;
 
 initial begin
-    $dumpfile("bat52_pwm_ddpm_top.vcd");
-    $dumpvars(0, dut);
     $from_myhdl(
         io_in
     );
