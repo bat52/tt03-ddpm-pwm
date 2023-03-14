@@ -16,8 +16,11 @@ from pueda.gtkw import gen_gtkw
 
 from ddpm import pwm_ddpm, pwm_check
 from sine_lut import sine_lut
+from sd1_mod import counter_up
 
 NBIT_PWM   = 6
+NBIT_PRESCALER = NBIT_PWM
+
 TOP_DUT    = 'bat52_pwm_ddpm_top'
 TOP_TB     = 'tb_%s' % TOP_DUT
 
@@ -32,6 +35,9 @@ def bat52_pwm_ddpm_top( io_in, io_out ):
     sd        = Signal(bool(0))
 
     count_out = Signal(intbv(0)[NBIT_PWM:])
+    
+    prescaler_en  = Signal(bool(0))
+    prescaler_out = Signal(intbv(0)[NBIT_PRESCALER:])
     sine_out  = Signal(intbv(0)[NBIT_PWM:])
     
     pwm_ddpm_i = pwm_ddpm(clk = clk, resetn = resetn, inval = inval, 
@@ -39,9 +45,19 @@ def bat52_pwm_ddpm_top( io_in, io_out ):
              nbits = NBIT_PWM, ddpm_en = True, sd_en = True,
              count_out = count_out)
     
+    prescaler_i = counter_up(clk = clk, resetn = resetn, count_en = prescaler_en, 
+                             count_out = prescaler_out, nbits = NBIT_PRESCALER )
+
     sine_lut_i = sine_lut(nbits_amplitude = NBIT_PWM, nbits_phase = NBIT_PWM,
-             in_index = count_out, sine_out = sine_out)
-    
+             in_index = prescaler_out, sine_out = sine_out)
+
+    @always_comb
+    def prescaler_en_proc():
+        if count_out == 0:
+            prescaler_en.next = 1
+        else:
+            prescaler_en.next = 0
+
     @always_comb
     def in_proc():
         clk.next = io_in[0]
@@ -68,7 +84,7 @@ def tb_bat52_pwm_ddpm_top(period = 10, nbits = NBIT_PWM, convert_en = False, wor
     sd_out    = Signal(bool(0))
     resetn    = ResetSignal(bool(0), active=False, isasync=True)
     clk       = Signal(bool(0))
-    duration  = (2**nbits) * pwm_cycles_per_code * int(period)
+    pwm_test_duration  = (2**nbits) * pwm_cycles_per_code * int(period)
     count_out = Signal(intbv(0)[nbits:])
 
     io_in     = Signal(modbv(0)[8:]) 
@@ -118,18 +134,19 @@ def tb_bat52_pwm_ddpm_top(period = 10, nbits = NBIT_PWM, convert_en = False, wor
             yield delay(int(period/2))
     
     @instance
-    def geninput():        
+    def geninput():
+        # pwm test sequence        
         for val in range(2**nbits):
             # reset pulse
             inval.next = val
-            resetn.next = 0
+            # resetn.next = 0
             yield delay(int(period/2))            
             # set input and exit reset
             resetn.next = 1
-            yield delay(int(period/2))            
+            yield delay(int(period/2))
 
             # wait for a full cycle
-            yield delay( duration )
+            yield delay( pwm_test_duration )
 
     return instances()
 
@@ -145,10 +162,11 @@ def bat52_pwm_ddpm_top_tb_test_main(period = 10, convert_en = False, dump_en = T
              pwm_cycles_per_code = pwm_cycles_per_code, work = work,
              top_gen = top_gen, top_compare = top_compare)
     
-    nbits = NBIT_PWM
+    precycle = 2**NBIT_PRESCALER
+    nbits = NBIT_PWM    
     pwmcycle = 2**nbits
     daccycle = 2**nbits * pwmcycle    
-    duration = pwm_cycles_per_code * daccycle * period
+    duration = pwm_cycles_per_code * daccycle * period # * precycle
 
     if not(cosim_en):
         tb_i.config_sim(trace=dump_en)
@@ -193,7 +211,7 @@ def gen_gtkw_ddpm(fname = 'tb.gtkw', nbits = 4):
         groups.append(
             {
             'gname'            : '%s.pwm_check%d.' % (TOP_TB, pidx),
-            'bit_signals'      : ['clk', 'resetn', 'pwm_o', 'pwm_d_valid', 'pwm_error'],
+            'bit_signals'      : ['clk', 'resetn', 'pwm_o', 'pwm_d_valid', 'input_valid' , 'clk_valid', 'check_valid','pwm_error'],
             'multibit_signals' : ['pwm_i', 'pwm_d', 'pwdem%d.count' % pidx]
             }
         )

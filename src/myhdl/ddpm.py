@@ -131,12 +131,22 @@ def pwdem(clk, resetn, nbits = 4, inval=Signal(0), outval = Signal(intbv(0)[4:])
 @block
 def pwm_check(clk, resetn, nbits, pwm_i, pwm_o, inst_name = '', posedge_en = True):
 
-    pwm_d = Signal(intbv(0)[nbits:])
-    pwm_d_valid = Signal(bool(0))
-    pwm_error = Signal(bool(0))
+    pwm_d = Signal(intbv(0)[nbits:]) # demodulated pwm signal
+    pwm_d_valid = Signal(bool(0))    # demodulated pwm signal valid (end of pwm cycle)
+    pwm_error = Signal(bool(0))      # demodulated pwm signal wrong
     clk_valid = Signal(bool(0))
+    input_valid = Signal(bool(1))    
+    check_valid = Signal(bool(0))
 
+    pwm_i_d = Signal(intbv(0)[nbits:]) # delayed input signal
+
+    # pwm demodulator
     pwd_i = pwdem(clk,resetn, nbits, pwm_o, pwm_d, pwm_d_valid, posedge_en = posedge_en)
+
+    if posedge_en:
+        edge = clk.posedge
+    else:
+        edge = clk.negedge
 
     @always_comb
     def clk_valid_proc():
@@ -146,9 +156,16 @@ def pwm_check(clk, resetn, nbits, pwm_i, pwm_o, inst_name = '', posedge_en = Tru
             clk_valid.next = clk
 
     @always_comb
-    # @always_seq(clk.posedge,reset=resetn)
-    def check():
-        if pwm_d_valid and resetn and clk_valid:
+    def check_valid_proc():
+        if pwm_d_valid and resetn and clk_valid and input_valid:
+            check_valid.next = 1
+        else:
+            check_valid.next = 0
+
+    # @always_comb
+    @always_seq(edge,reset=resetn)
+    def check_proc():
+        if check_valid:
             if pwm_i == pwm_d:
                 pwm_error.next = 0
             else: #if not(pwm_i == pwm_d):
@@ -157,6 +174,20 @@ def pwm_check(clk, resetn, nbits, pwm_i, pwm_o, inst_name = '', posedge_en = Tru
         else:
             pwm_error.next = 0
 
+    @always_seq(edge,reset=resetn)
+    def pwm_i_d_proc():
+        pwm_i_d.next = pwm_i
+
+    @always_seq(edge,reset=resetn)
+    def input_valid_proc():
+        if not(resetn):
+            input_valid.next = 1
+        elif pwm_d_valid:
+            input_valid.next = 1
+        elif not(pwm_i == pwm_i_d):
+            # input value changed during a cycle
+            input_valid.next = 0
+        
     return instances()
 
 @block
