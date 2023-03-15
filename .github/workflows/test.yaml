@@ -42,6 +42,13 @@ jobs:
         pip3 install git+https://github.com/myhdl/myhdl.git@master
         pip3 install git+https://github.com/bat52/pueda.git@master
 
+    - name: setup matplotlib
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    - run: | 
+        pip3 install matplotlib
+
     - name: test
       run: |
         cd ./src/myhdl
