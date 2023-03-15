@@ -34,11 +34,13 @@ def bat52_pwm_ddpm_top( io_in, io_out ):
     pwm       = Signal(bool(0))
     ddpm      = Signal(bool(0))
     sd        = Signal(bool(0))
+    e         = Signal(bool(1))
 
     # sine lut input
     pwm_sine  = Signal(bool(0))
     ddpm_sine = Signal(bool(0))
     sd_sine   = Signal(bool(0))
+    e_sine    = Signal(bool(1))
 
     count_out = Signal(intbv(0)[NBIT_PWM:])
     count_sine_out = Signal(intbv(0)[NBIT_PWM:])
@@ -49,19 +51,20 @@ def bat52_pwm_ddpm_top( io_in, io_out ):
     
     pwm_ddpm_i = pwm_ddpm(clk = clk, resetn = resetn, inval = inval, 
              pwm = pwm, ddpm   = ddpm, sd_out = sd,
-             nbits = NBIT_PWM, ddpm_en = True, sd_en = True,
+             nbits = NBIT_PWM, ddpm_en = True, sd_en = False,
              count_out = count_out)
     
-    prescaler_i = counter_up(clk = clk, resetn = resetn, count_en = prescaler_en, 
-                             count_out = prescaler_out, nbits = NBIT_PRESCALER )
+    if True:
+        prescaler_i = counter_up(clk = clk, resetn = resetn, count_en = prescaler_en, 
+                                count_out = prescaler_out, nbits = NBIT_PRESCALER )
 
-    sine_lut_i = sine_lut(nbits_amplitude = NBIT_PWM, nbits_phase = NBIT_PWM,
-             in_index = prescaler_out, sine_out = sine_out)
-    
-    pwm_sine_i = pwm_ddpm(clk = clk, resetn = resetn, inval = sine_out, 
-            pwm = pwm_sine, ddpm   = ddpm_sine, sd_out = sd_sine,
-            nbits = NBIT_PWM, ddpm_en = True, sd_en = True,
-            count_out = count_sine_out)
+        sine_lut_i = sine_lut(nbits_amplitude = NBIT_PWM, nbits_phase = NBIT_PWM,
+                in_index = prescaler_out, sine_out = sine_out)
+        
+        pwm_sine_i = pwm_ddpm(clk = clk, resetn = resetn, inval = sine_out, 
+                pwm = pwm_sine, ddpm   = ddpm_sine, sd_out = sd_sine,
+                nbits = NBIT_PWM, ddpm_en = True, sd_en = True,
+                count_out = count_sine_out)
     
     @always_comb
     def prescaler_en_proc():
@@ -81,11 +84,11 @@ def bat52_pwm_ddpm_top( io_in, io_out ):
         io_out.next[0] = pwm
         io_out.next[1] = ddpm
         io_out.next[2] = sd
-
+        io_out.next[3] = e
         io_out.next[4] = pwm_sine
         io_out.next[5] = ddpm_sine
         io_out.next[6] = sd_sine
-        # io_out.next[8:3] = sine_out[6:1]
+        io_out.next[7] = e_sine
 
     return instances()
     
@@ -107,7 +110,6 @@ def tb_bat52_pwm_ddpm_top(period = 10, nbits = NBIT_PWM, convert_en = False, wor
     resetn    = ResetSignal(bool(0), active=False, isasync=True)
     clk       = Signal(bool(0))
     duration  = (2**nbits) * pwm_cycles_per_code * int(period)
-    # count_out = Signal(intbv(0)[nbits:])
 
     io_in     = Signal(modbv(0)[8:]) 
     io_out    = Signal(modbv(0)[8:]) 
@@ -115,20 +117,19 @@ def tb_bat52_pwm_ddpm_top(period = 10, nbits = NBIT_PWM, convert_en = False, wor
     pwm_i  = bat52_pwm_ddpm_top( io_in = io_in, io_out = io_out )
 
     @always_comb
-    def io_proc():
+    def input_proc():
         io_in.next[0] = clk
         io_in.next[1] = resetn
         io_in.next[8:2] = inval[NBIT_PWM:0]
         
+    @always_comb
+    def output_proc():
         pwm_out.next = io_out[0]
         ddpm_out.next = io_out[1]
         sd_out.next = io_out[2]
-
         pwm_sine.next = io_out[4]
         ddpm_sine.next = io_out[5]
         sd_sine.next = io_out[6]
-
-        # count_out.next = io_out[8:3]
 
     # checker instances
     pwm_c  = pwm_check(clk,resetn, nbits, inval, pwm_out,  'PWM')    
@@ -149,7 +150,7 @@ def tb_bat52_pwm_ddpm_top(period = 10, nbits = NBIT_PWM, convert_en = False, wor
         src_dirs=[work]
 
         ports={'io_in': io_in, 'io_out': io_out}
-        simname='ddpm'        
+        simname='ddpm_top'        
 
         pwm_h = myhdl_cosim_wrapper(topfile=topfile, topmodule=topmodule, src_dirs=src_dirs, simname=simname, duration=duration)
         # overwrite pwm_i
