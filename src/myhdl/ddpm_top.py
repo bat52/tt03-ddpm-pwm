@@ -30,11 +30,18 @@ def bat52_pwm_ddpm_top( io_in, io_out ):
     resetn    = ResetSignal(bool(0), active=False, isasync=True)
     inval     = Signal(intbv(0)[NBIT_PWM:]) 
 
+    # static dc input
     pwm       = Signal(bool(0))
     ddpm      = Signal(bool(0))
     sd        = Signal(bool(0))
 
+    # sine lut input
+    pwm_sine  = Signal(bool(0))
+    ddpm_sine = Signal(bool(0))
+    sd_sine   = Signal(bool(0))
+
     count_out = Signal(intbv(0)[NBIT_PWM:])
+    count_sine_out = Signal(intbv(0)[NBIT_PWM:])
     
     prescaler_en  = Signal(bool(0))
     prescaler_out = Signal(intbv(0)[NBIT_PRESCALER:])
@@ -50,7 +57,12 @@ def bat52_pwm_ddpm_top( io_in, io_out ):
 
     sine_lut_i = sine_lut(nbits_amplitude = NBIT_PWM, nbits_phase = NBIT_PWM,
              in_index = prescaler_out, sine_out = sine_out)
-
+    
+    pwm_sine_i = pwm_ddpm(clk = clk, resetn = resetn, inval = sine_out, 
+            pwm = pwm_sine, ddpm   = ddpm_sine, sd_out = sd_sine,
+            nbits = NBIT_PWM, ddpm_en = True, sd_en = True,
+            count_out = count_sine_out)
+    
     @always_comb
     def prescaler_en_proc():
         if count_out == 0:
@@ -65,11 +77,15 @@ def bat52_pwm_ddpm_top( io_in, io_out ):
         inval.next[6:0] = io_in[8:2]    # one extra bit because myHDL is always signed
 
     @always_comb
-    def out_proc():
+    def io_out_proc():
         io_out.next[0] = pwm
         io_out.next[1] = ddpm
         io_out.next[2] = sd
-        io_out.next[8:3] = sine_out[6:1]
+
+        io_out.next[4] = pwm_sine
+        io_out.next[5] = ddpm_sine
+        io_out.next[6] = sd_sine
+        # io_out.next[8:3] = sine_out[6:1]
 
     return instances()
     
@@ -79,28 +95,40 @@ def tb_bat52_pwm_ddpm_top(period = 10, nbits = NBIT_PWM, convert_en = False, wor
        top_gen = False, top_compare = False):
     
     inval     = Signal(intbv(0)[nbits:])
+
     pwm_out   = Signal(bool(0))
     ddpm_out  = Signal(bool(0))
     sd_out    = Signal(bool(0))
+
+    pwm_sine  = Signal(bool(0))
+    ddpm_sine = Signal(bool(0))
+    sd_sine   = Signal(bool(0))
+
     resetn    = ResetSignal(bool(0), active=False, isasync=True)
     clk       = Signal(bool(0))
-    pwm_test_duration  = (2**nbits) * pwm_cycles_per_code * int(period)
-    count_out = Signal(intbv(0)[nbits:])
+    duration  = (2**nbits) * pwm_cycles_per_code * int(period)
+    # count_out = Signal(intbv(0)[nbits:])
 
     io_in     = Signal(modbv(0)[8:]) 
     io_out    = Signal(modbv(0)[8:]) 
 
-    pwm_i  = bat52_pwm_ddpm_top( io_in, io_out )
+    pwm_i  = bat52_pwm_ddpm_top( io_in = io_in, io_out = io_out )
 
     @always_comb
     def io_proc():
         io_in.next[0] = clk
         io_in.next[1] = resetn
         io_in.next[8:2] = inval[NBIT_PWM:0]
+        
         pwm_out.next = io_out[0]
         ddpm_out.next = io_out[1]
         sd_out.next = io_out[2]
-        count_out.next = io_out[8:3]
+
+        pwm_sine.next = io_out[4]
+        ddpm_sine.next = io_out[5]
+        sd_sine.next = io_out[6]
+
+        # count_out.next = io_out[8:3]
 
     # checker instances
     pwm_c  = pwm_check(clk,resetn, nbits, inval, pwm_out,  'PWM')    
@@ -146,7 +174,7 @@ def tb_bat52_pwm_ddpm_top(period = 10, nbits = NBIT_PWM, convert_en = False, wor
             yield delay(int(period/2))
 
             # wait for a full cycle
-            yield delay( pwm_test_duration )
+            yield delay( duration )
 
     return instances()
 
@@ -154,7 +182,7 @@ def bat52_pwm_ddpm_top_tb_test_main(period = 10, convert_en = False, dump_en = T
               pwm_cycles_per_code = 3, cosim_en = False,
               top_gen = False, top_compare = False):
     
-    work = get_clean_work('ddpm', makedir=True)    
+    work = get_clean_work('ddpm_top', makedir=True)    
     os.system('rm *.vcd')
 
     tb_i = tb_bat52_pwm_ddpm_top(period = period,
@@ -191,7 +219,7 @@ def cosim_view(nbits = 4):
     vcd  = '../work_icarus/%s.vcd' % TOP_DUT
     gtkw = '%s.gtkw' % TOP_DUT
     gen_gtkw_ddpm_cosim(fname = gtkw, nbits = nbits)
-    vcd_view(vcd, savefname=gtkw, block_en=False)     
+    vcd_view(vcd, savefname=gtkw, options = ' -o ') # , block_en=False)     
 
 def gen_gtkw_ddpm(fname = 'tb.gtkw', nbits = 4):
 
@@ -201,8 +229,8 @@ def gen_gtkw_ddpm(fname = 'tb.gtkw', nbits = 4):
     groups.append(
         {
         'gname'            : '%s.' % TOP_TB,
-        'bit_signals'      : ['clk', 'resetn', 'pwm_out','ddpm_out','sd_out'],
-        'multibit_signals' : ['inval', 'count_out']
+        'bit_signals'      : ['clk', 'resetn', 'pwm_out','ddpm_out','sd_out', 'pwm_sine','ddpm_sine','sd_sine'],
+        'multibit_signals' : ['inval'] #, 'count_out']
         }
     )    
 
@@ -228,7 +256,7 @@ def gen_gtkw_ddpm_cosim(fname = 'tb.gtkw', nbits = 4):
     groups.append(
         {
         'gname'            : '%s.dut.' % TOP_TB, 
-        'bit_signals'      : ['clk', 'resetn', 'pwm','ddpm','sd'],
+        'bit_signals'      : ['clk', 'resetn', 'pwm','ddpm','sd','pwm_sine','ddpm_sine','sd_sine'],
         'multibit_signals' : ['inval', 'count', 'ddpm_int_all']
         }
     )    

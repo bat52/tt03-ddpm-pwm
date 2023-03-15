@@ -50,22 +50,22 @@ documentation:
   inputs:               
     - clock
     - reset
-    - in0
-    - in1
-    - in2
-    - in3
-    - in4
-    - in5
+    - pwm_in[0]
+    - pwm_in[1]
+    - pwm_in[2]
+    - pwm_in[3]
+    - pwm_in[4]
+    - pwm_in[5]
 # A description of what the outputs do
   outputs:
-    - ddpm     / segment a
-    - pwm      / segment b
-    - sine[0]  / segment c
-    - sine[1]  / segment d
-    - sine[2]  / segment e
-    - sine[3]  / segment f
-    - sine[4]  / segment g
-    - sine[5]  / dot
+    - pwm       / segment a
+    - ddpm      / segment b
+    - sd        / segment c
+    -           / segment d
+    - pwm_sine  / segment e
+    - ddpm_sine / segment f
+    - sd_sine   / segment g
+    -           / dot
 
 # The following fields are optional
   tag:          "pwm, ddpm"     # comma separated list of tags: test encryption, experiment, clock, animation, utility, industrial, pwm, fpga, alu, microprocessor, risc, riscv, sensor, signal generator, fft, filter, music, bcd, sound, serial, timer, random number generator, calculator, decoder, counter, puzzle, multiplier, game, oscillator,

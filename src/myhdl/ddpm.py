@@ -129,7 +129,7 @@ def pwdem(clk, resetn, nbits = 4, inval=Signal(0), outval = Signal(intbv(0)[4:])
     return instances()
 
 @block
-def pwm_check(clk, resetn, nbits, pwm_i, pwm_o, inst_name = '', posedge_en = True):
+def pwm_check(clk, resetn, nbits, pwm_i, pwm_o, inst_name = '', posedge_en = True, tolerance = 1):
 
     pwm_d = Signal(intbv(0)[nbits:]) # demodulated pwm signal
     pwm_d_valid = Signal(bool(0))    # demodulated pwm signal valid (end of pwm cycle)
@@ -137,6 +137,7 @@ def pwm_check(clk, resetn, nbits, pwm_i, pwm_o, inst_name = '', posedge_en = Tru
     clk_valid = Signal(bool(0))
     input_valid = Signal(bool(1))    
     check_valid = Signal(bool(0))
+    pwm_delta = Signal(intbv(0)[nbits:]) # pwm_in - pwm_out
 
     pwm_i_d = Signal(intbv(0)[nbits:]) # delayed input signal
 
@@ -166,13 +167,20 @@ def pwm_check(clk, resetn, nbits, pwm_i, pwm_o, inst_name = '', posedge_en = Tru
     @always_seq(edge,reset=resetn)
     def check_proc():
         if check_valid:
-            if pwm_i == pwm_d:
+            if pwm_delta <= tolerance:
                 pwm_error.next = 0
-            else: #if not(pwm_i == pwm_d):
+            else:
                 pwm_error.next = 1
                 print('time: %d [timesteps], INSTANCE: %s ERROR!!! INPUT: %d, PWM: %d' % (now(), inst_name, pwm_i, pwm_d))
         else:
             pwm_error.next = 0
+
+    @always_comb
+    def pwm_delta_proc():
+        if pwm_i > pwm_d:
+            pwm_delta.next = pwm_i - pwm_d
+        else:
+            pwm_delta.next = pwm_d - pwm_i
 
     @always_seq(edge,reset=resetn)
     def pwm_i_d_proc():
@@ -284,7 +292,7 @@ def gen_gtkw_ddpm(fname = 'tb.gtkw', nbits = 4):
         {
         'gname'            : 'tb.pwm_ddpm0.',
         'bit_signals'      : ['clk', 'resetn', 'pwm','ddpm','sd_out'],
-        'multibit_signals' : ['inval', 'count']
+        'multibit_signals' : ['inval'] #, 'count']
         }
     )    
 
@@ -329,7 +337,7 @@ def cosim_view(nbits = 4):
     vcd  = '../work_icarus/pwm_ddpm.vcd'
     gtkw = 'dut.gtkw' 
     gen_gtkw_ddpm_cosim(fname = gtkw, nbits = nbits)
-    vcd_view(vcd, savefname=gtkw, block_en=False)    
+    vcd_view(vcd, savefname=gtkw, options=' -o ') # , block_en=False)    
 
 def test_main(period = 10, nbits=4, convert_en = False, dump_en = True, 
               pwm_cycles_per_code = 3, 
