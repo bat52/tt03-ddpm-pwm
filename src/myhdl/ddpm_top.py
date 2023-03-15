@@ -19,7 +19,9 @@ from sine_lut import sine_lut
 from sd1_mod import counter_up
 
 NBIT_PWM   = 6
-NBIT_PRESCALER = NBIT_PWM
+
+NBIT_PWM_SINE   = 8
+NBIT_PRESCALER = NBIT_PWM_SINE
 
 TOP_DUT    = 'bat52_pwm_ddpm_top'
 TOP_TB     = 'tb_%s' % TOP_DUT
@@ -43,11 +45,11 @@ def bat52_pwm_ddpm_top( io_in, io_out ):
     e_sine    = Signal(bool(1))
 
     count_out = Signal(intbv(0)[NBIT_PWM:])
-    count_sine_out = Signal(intbv(0)[NBIT_PWM:])
+    count_sine_out = Signal(intbv(0)[NBIT_PWM_SINE:])
     
     prescaler_en  = Signal(bool(0))
     prescaler_out = Signal(intbv(0)[NBIT_PRESCALER:])
-    sine_out  = Signal(intbv(0)[NBIT_PWM:])
+    sine_out      = Signal(intbv(0)[NBIT_PWM_SINE:])
     
     pwm_ddpm_i = pwm_ddpm(clk = clk, resetn = resetn, inval = inval, 
              pwm = pwm, ddpm   = ddpm, sd_out = sd,
@@ -58,12 +60,12 @@ def bat52_pwm_ddpm_top( io_in, io_out ):
         prescaler_i = counter_up(clk = clk, resetn = resetn, count_en = prescaler_en, 
                                 count_out = prescaler_out, nbits = NBIT_PRESCALER )
 
-        sine_lut_i = sine_lut(nbits_amplitude = NBIT_PWM, nbits_phase = NBIT_PWM,
+        sine_lut_i = sine_lut(nbits_amplitude = NBIT_PWM_SINE, nbits_phase = NBIT_PWM_SINE,
                 in_index = prescaler_out, sine_out = sine_out)
         
         pwm_sine_i = pwm_ddpm(clk = clk, resetn = resetn, inval = sine_out, 
                 pwm = pwm_sine, ddpm   = ddpm_sine, sd_out = sd_sine,
-                nbits = NBIT_PWM, ddpm_en = True, sd_en = True,
+                nbits = NBIT_PWM_SINE, ddpm_en = True, sd_en = True,
                 count_out = count_sine_out)
     
     @always_comb
@@ -195,7 +197,7 @@ def bat52_pwm_ddpm_top_tb_test_main(period = 10, convert_en = False, dump_en = T
     nbits = NBIT_PWM    
     pwmcycle = 2**nbits
     daccycle = 2**nbits * pwmcycle    
-    duration = pwm_cycles_per_code * daccycle * period # * precycle
+    duration = pwm_cycles_per_code * daccycle * period * 4 # * precycle
 
     if not(cosim_en):
         tb_i.config_sim(trace=dump_en)

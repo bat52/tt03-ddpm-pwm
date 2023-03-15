@@ -40,11 +40,26 @@ function fh = plot_freq ( s, fs, figno, color)
 
   freq = (fs/length(sf))*[0:length(sf)-1];
 
+  if 1
+    % just fft
+    pf = freq(2:end);
+    ps = sf(2:end);
+  else
+    % extract envelope
+    
+    % make the wave positive
+    minval = min(sf);
+    sf = sf-minval;    
+    [pks, idxs] = findpeaks(sf,"MinPeakHeight",5);
+    pf = freq(idxs);
+    ps = sf(idxs)+minval;
+  end
+  
+  semilogx(pf, ps, color); # avoid dc
   hold on; grid on;
-  semilogx(freq,sf);
   xlabel('freq [Hz]');
   ylabel('amplitude [dBc]');
   ylim([-100 0]);
-  xlim([1 freq(round(length(sf)/2))]);
+  xlim([1e-1 freq(round(length(sf)/2))]);
   
 endfunction

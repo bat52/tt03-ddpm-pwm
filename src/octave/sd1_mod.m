@@ -17,7 +17,7 @@ function sd_out = sd1_mod( inval,  nbits)
     end
     
   if 1
-    figure(541);
+    fh = figure(541);
     
     subplot(411)
     stairs(inval);
@@ -39,6 +39,8 @@ function sd_out = sd1_mod( inval,  nbits)
     hold on; grid on;   
     ylabel('out')
     
+    saveas(fh, 'sd', 'png');
+    close(fh);
   end
     
 end
