@@ -3,7 +3,6 @@
 import sys
 import os
 import argparse
-from ast import literal_eval
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -14,9 +13,7 @@ from myhdl import *
 # pip3 install git+https://github.com/bat52/pueda.git@master
 from pueda.myhdl import *
 from pueda.common import get_clean_work, vcd_view
-
-# https://pypi.org/project/vcdvcd/
-from vcdvcd import VCDVCD
+from pueda.vcd import vcd_get_signal, VCDVCD
 
 from sine_lut import sine_lut, NBIT_SINE_LUT_PHASE, NBIT_SINE_LUT_AMPLITUDE
 
@@ -163,7 +160,7 @@ def test_sd1_main( convert_en = False, dump_en = True,
         tb_i.run_sim(duration=duration)
         if dump_en:
             vcd  = SD1_TB_TOP + '.vcd'
-            sim_view(vcd)
+            vcd_view(vcd, block_en=False) # vcd_view now picks default filename if present
             # sim_postproc(vcd)
     else: # cosim_en
         cosim = Simulation( tb_i )
@@ -171,51 +168,6 @@ def test_sd1_main( convert_en = False, dump_en = True,
         if dump_en:
             cosim_view()
     pass
-
-def sim_view(vcd):    
-    fname = os.path.splitext(vcd)[0]
-    gtkw = fname + '.gtkw'
-    # gen_gtkw_ddpm(gtkw, nbits=nbits)
-    vcd_view(vcd, savefname=gtkw, block_en=False)
-    return vcd
-
-def vcd_tv2list(tv,fmt='dec'):
-    time = []
-    value = []
-    for e in tv:
-
-        if   fmt == 'dec':
-            vstr = e[1]
-        elif fmt == 'bin':
-            vstr = '0b' + str.strip(e[1])
-        elif fmt == 'hex':    
-            vstr = '0h' + str.strip(e[1])
-        else:
-            print('unsupported format "%s" !!!' % fmt)
-            assert(False)
-
-        value.append(literal_eval(vstr))
-        time.append(e[0])
-    return {'value':value,'time':time}
-
-def vcd_resample(s, fs=1):
-
-    # generate time series
-    tmin = min(s['time'])
-    tmax = max(s['time'])
-    t = np.arange(tmin,tmax,fs)
-    sout = np.interp(t, s['time'], s['value'])
-    # sout = f(t)
-
-    return {'value':sout, 'time': t}    
-
-def vcd_get_signal(vcdh,sname,fmt = 'dec', resample_en = False, fs=1e9):
-    signal = vcdh[sname]
-    # tv is a list of Time/Value delta pairs for this signal.
-    s = vcd_tv2list(signal.tv,fmt = fmt)
-    if resample_en:
-        s = vcd_resample(s)
-    return s 
 
 def sim_postproc(fname):
     vcd = VCDVCD(fname)
