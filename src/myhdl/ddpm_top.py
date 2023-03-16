@@ -18,10 +18,9 @@ from ddpm import pwm_ddpm, pwm_check
 from sine_lut import sine_lut
 from sd1_mod import counter_up
 
-NBIT_PWM   = 6
-
-NBIT_PWM_SINE   = 8
-NBIT_PRESCALER = NBIT_PWM_SINE
+NBIT_PWM       = 6
+NBIT_PWM_SINE  = 8
+NBIT_PRESCALER = NBIT_PWM_SINE + (NBIT_PWM_SINE - NBIT_PWM)
 
 TOP_DUT    = 'bat52_pwm_ddpm_top'
 TOP_TB     = 'tb_%s' % TOP_DUT
@@ -37,19 +36,13 @@ def bat52_pwm_ddpm_top( io_in, io_out ):
     ddpm      = Signal(bool(0))
     sd        = Signal(bool(0))
     e         = Signal(bool(1))
-
     # sine lut input
     pwm_sine  = Signal(bool(0))
     ddpm_sine = Signal(bool(0))
     sd_sine   = Signal(bool(0))
     e_sine    = Signal(bool(1))
-
-    count_out = Signal(intbv(0)[NBIT_PWM:])
-    count_sine_out = Signal(intbv(0)[NBIT_PWM_SINE:])
     
-    prescaler_en  = Signal(bool(0))
-    prescaler_out = Signal(intbv(0)[NBIT_PRESCALER:])
-    sine_out      = Signal(intbv(0)[NBIT_PWM_SINE:])
+    count_out = Signal(intbv(0)[NBIT_PWM:])
     
     pwm_ddpm_i = pwm_ddpm(clk = clk, resetn = resetn, inval = inval, 
              pwm = pwm, ddpm   = ddpm, sd_out = sd,
@@ -57,23 +50,33 @@ def bat52_pwm_ddpm_top( io_in, io_out ):
              count_out = count_out)
     
     if True:
+        count_sine_out = Signal(intbv(0)[NBIT_PWM_SINE:])        
+        prescaler_en  = Signal(bool(0))
+        prescaler_out = Signal(intbv(0)[NBIT_PRESCALER:])
+        sine_in       = Signal(intbv(0)[NBIT_PWM_SINE:])
+        sine_out      = Signal(intbv(0)[NBIT_PWM_SINE:])
+
         prescaler_i = counter_up(clk = clk, resetn = resetn, count_en = prescaler_en, 
                                 count_out = prescaler_out, nbits = NBIT_PRESCALER )
 
         sine_lut_i = sine_lut(nbits_amplitude = NBIT_PWM_SINE, nbits_phase = NBIT_PWM_SINE,
-                in_index = prescaler_out, sine_out = sine_out)
+                in_index = sine_in, sine_out = sine_out)
         
         pwm_sine_i = pwm_ddpm(clk = clk, resetn = resetn, inval = sine_out, 
                 pwm = pwm_sine, ddpm   = ddpm_sine, sd_out = sd_sine,
                 nbits = NBIT_PWM_SINE, ddpm_en = True, sd_en = True,
                 count_out = count_sine_out)
     
-    @always_comb
-    def prescaler_en_proc():
-        if count_out == 0:
-            prescaler_en.next = 1
-        else:
-            prescaler_en.next = 0
+        @always_comb
+        def prescaler_en_proc():
+            if count_out == 0:
+                prescaler_en.next = 1
+            else:
+                prescaler_en.next = 0
+
+        @always_comb
+        def prescaler_out_proc():
+            sine_in.next = prescaler_out[NBIT_PRESCALER:NBIT_PRESCALER-NBIT_PWM_SINE]
 
     @always_comb
     def in_proc():
@@ -246,6 +249,14 @@ def gen_gtkw_ddpm(fname = 'tb.gtkw', nbits = 4):
             'multibit_signals' : ['pwm_i', 'pwm_d', 'pwdem%d.count' % pidx]
             }
         )
+
+    groups.append(
+        {
+        'gname'            : '%s.%s0.pwm_ddpm1.' % (TOP_TB, TOP_DUT),
+        'bit_signals'      : ['clk', 'resetn', 'pwm','ddpm','sd_out'],
+        'multibit_signals' : ['inval', 'count_out']
+        }
+    ) 
 
     gen_gtkw(fname = fname, nbits = nbits, groups = groups)
 
