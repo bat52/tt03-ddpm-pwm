@@ -93,4 +93,4 @@ documentation:
   discord:      ""              # Your discord handle, used for communication and automatically assigning tapeout role after a submission
   doc_link:     "https://github.com/bat52/tt03-ddpm-pwm/blob/main/README.md"   # URL to longer form documentation, eg the README.md in your repository
   clock_hz:     12500           # Clock frequency in Hz (if required)
-  picture:      "doc/ddpm.svg"  # relative path to a picture in your repository
+  picture:      "doc/ddpm.pdf"  # relative path to a picture in your repository
