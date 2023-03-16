@@ -50,32 +50,37 @@ documentation:
       require careful modeling of the systems and condition under which they will be required to operate.
 
       This design is separated into two section:
-        1) a first instance of PWM, DDPM and SD fed by a static DC value (6bit) from the input pins
+        1) a first instance of PWM, DDPM and SD fed by a static DC value from the input pins
         2) a second instance of PWM, DDPM and SD fed sine look-up-table (LUT) that allows to evaluate the spectral content
         of the modulated signals.
 
-      References:
-      - [1] "Standard Cell-Based Ultra-Compact DACs in 40nm CMOS", Aiello et al.
-      https://www.researchgate.net/publication/335513725_Standard_Cell-Based_Ultra-Compact_DACs_in_40nm_CMOS
-      - [2] "All-Digital High Resolution D/A Conversion by Dyadic Digital Pulse Modulation", Crovetti
-      (https://www.researchgate.net/publication/309012492_All-Digital_High_Resolution_DA_Conversion_by_Dyadic_Digital_Pulse_Modulation/citations)
-      - [3] "Spectral characteristics of DDPM streams and their application to all‐digital amplitude modulation", Crovetti
-      https://www.researchgate.net/publication/348654600_Spectral_characteristics_of_DDPM_streams_and_their_application_to_all-digital_amplitude_modulation
-
 # Instructions on how someone could test your project, include things like what buttons do what and how to set the clock if needed
   how_to_test:  |
-      Explain how to test your project
+      Common:
+      The circuit needs to be fed with a clock on pin io_in[0]. 
+      Reset signal needs to be released by raising to 1 pin io_in[1].
+
+      Static DC:      
+      The input inval of the first set of DC modulators is fed through pins io_in[7:2].
+      The low-passed dc component of the outputs on pins io_out[0] (PWM), io_out[1], and io_out[2] is
+      proportional to the decimal value of the input inval. 
+
+      Sinusoidal output:
+      The low-passed outputs on pins io_out[4] (PWM), io_out[5], and io_out[6] is a sinusoidal wave.
+      When clocking the chip with a clock frequency of 12.5kHz, the frequency of the sine is of 0.76z (fsin = fclock / 2^14), so that it should 
+      be visible at naked eye. The different designs should achieve an ENOB of 9bit in the band 0-40Hz, with different
+      level of out-of-band emission between each other.
 
 # A description of what the inputs do
   inputs:               
     - clock
     - resetn
-    - pwm_in[0]
-    - pwm_in[1]
-    - pwm_in[2]
-    - pwm_in[3]
-    - pwm_in[4]
-    - pwm_in[5]
+    - inval[0]
+    - inval[1]
+    - inval[2]
+    - inval[3]
+    - inval[4]
+    - inval[5]
 # A description of what the outputs do
   outputs:
     - pwm       / segment a

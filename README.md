@@ -6,28 +6,45 @@ This TinyTapeout submission is a collection of Pulse Density Modulators (PDM).
 
 <img width="684" alt="スクリーンショット 2022-12-26 10 49 35" src="https://camo.githubusercontent.com/63361edbc8bdb75bafb490cf3447c9942f3866d076e79bdc213507299c99ecbf/68747470733a2f2f62617435322e6769746875622e696f2f747430332d6464706d2d70776d2f6764735f72656e6465722e706e67">
 
+- [3D Viewer](https://gds-viewer.tinytapeout.com/?model=https://bat52.github.io/tt03-ddpm-pwm/tinytapeout.gds.gltf)
+
 # Description
 This project implements three different architectures of Pulse Density Modulators (PDM), to compare performances and 
-      implementation complexity of the different schemes.
+implementation complexity of the different schemes.
       
-      PDM modulators are of particular interest because exploiting oversampling, they allow to implement 
-      Digital-to-Analog-Conversion (DAC) schemes with an equivalent resolution of multiple bits, based on 
-      a single-bit digital output, by means of a straightforward analogue low-pass filter.      
+PDM modulators are of particular interest because exploiting oversampling, they allow to implement 
+Digital-to-Analog-Conversion (DAC) schemes with an equivalent resolution of multiple bits, based on 
+a single-bit digital output, by means of a straightforward analogue low-pass filter.      
 
-      The PDM modulators implemented in this project are the following:
-        1) Pulse Width Moulation (PWM)
-        2) Dyadic Digital Pulse Modulation (DDPM)
-        3) Sigma-Delta (SD)
+The PDM modulators implemented in this project are the following:
+1) Pulse Width Moulation (PWM)
+2) Dyadic Digital Pulse Modulation (DDPM)
+3) Sigma-Delta (SD)
 
+This design is separated into two section:
+1) a first instance of PWM, DDPM and SD fed by a static DC value from the input pins
+2) a second instance of PWM, DDPM and SD fed sine look-up-table (LUT) that allows to evaluate the spectral content
+of the modulated signals.
+
+<img src="https://github.com/bat52/tt03-ddpm-pwm/blob/main/doc/ddpm.pdf">
+
+The design is implemented in [myHDL](https://myhdl.org/), and the verification environment leverages [PuEDA](https://github.com/bat52/pueda).
+
+## DC Modulation
+
+The input inval of the first set of DC modulators is fed through pins io_in[7:2].
+The low-passed dc component of the outputs on pins io_out[0] (PWM), io_out[1], and io_out[2] is
+proportional to the decimal value of the input inval. 
 ## Sine Modulation
+The low-passed outputs on pins io_out[4] (PWM), io_out[5], and io_out[6] is a sinusoidal wave.
+When clocking the chip with a clock frequency of 12.5kHz, the frequency of the sine is of 0.76z (fsin = fclock / 2^14), so that it should be visible at naked eye. 
 
 <img src="https://github.com/bat52/tt03-ddpm-pwm/blob/main/src/octave/timedomain.png">
+
+The different designs should achieve an ENOB of 9bit in the band 0-40Hz, with different
+level of out-of-band emission between each other, as reported below.
+
 <img src="https://github.com/bat52/tt03-ddpm-pwm/blob/main/src/octave/freqdomain.png">
-<img src="https://github.com/bat52/tt03-ddpm-pwm/blob/main/src/octave/sd.png">
-
-## Links
-
-- [3D Viewer](https://gds-viewer.tinytapeout.com/?model=https://bat52.github.io/tt03-ddpm-pwm/tinytapeout.gds.gltf)
 
 ## References:
 
