@@ -20,7 +20,7 @@ documentation:
   author:       "Marco Merlin"             # Your name
   title:        "Pulse-Density Modulators" # Project title
   language:     "myHDL, python, verilog"   # other examples include Verilog, Amaranth, VHDL, etc
-  description:  "An implementation of a DDPM, PWM and Sigma-Delta Pulse-Density Modulators with python libraries myHDL and pueda."  # Short description of what your project does
+  description:  "An implementation of a DDPM, PWM and Sigma-Delta Pulse-Density Modulators with python libraries myHDL and PuEDA."  # Short description of what your project does
 
 # Longer description of how the project works. You can use standard markdown format.
   how_it_works: |
@@ -50,8 +50,8 @@ documentation:
       require careful modeling of the systems and condition under which they will be required to operate.
 
       This design is separated into two section:
-        1) a first instance of PWM, DDPM and SD fed by a static DC value from the input pins
-        2) a second instance of PWM, DDPM and SD fed sine look-up-table (LUT) that allows to evaluate the spectral content
+        1) 6 bits resolution instance of PWM, DDPM and SD fed by a static DC value from the input pins
+        2) 8 bits resolution instance of PWM, DDPM and SD fed sine look-up-table (LUT) that allows to evaluate the spectral content
         of the modulated signals.
 
 # Instructions on how someone could test your project, include things like what buttons do what and how to set the clock if needed
@@ -68,7 +68,7 @@ documentation:
       Sinusoidal output:
       The low-passed outputs on pins io_out[4] (PWM), io_out[5], and io_out[6] is a sinusoidal wave.
       When clocking the chip with a clock frequency of 12.5kHz, the frequency of the sine is of 0.76z (fsin = fclock / 2^14), so that it should 
-      be visible at naked eye. The different designs should achieve an ENOB of 9bit in the band 0-40Hz, with different
+      be visible at naked eye. The different designs should achieve an ENOB of 8 bits in the band 0-40Hz, with different
       level of out-of-band emission between each other.
 
 # A description of what the inputs do

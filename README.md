@@ -22,11 +22,11 @@ The PDM modulators implemented in this project are the following:
 3) Sigma-Delta (SD)
 
 This design is separated into two section:
-1) a first instance of PWM, DDPM and SD fed by a static DC value from the input pins
-2) a second instance of PWM, DDPM and SD fed sine look-up-table (LUT) that allows to evaluate the spectral content
+1) 6 bits resolution instance of PWM, DDPM and SD fed by a static DC value from the input pins
+2) 8 bits resolution instance of PWM, DDPM and SD fed sine look-up-table (LUT) that allows to evaluate the spectral content
 of the modulated signals.
 
-<img src="https://github.com/bat52/tt03-ddpm-pwm/blob/main/doc/ddpm.pdf">
+<img src="https://github.com/bat52/tt03-ddpm-pwm/blob/main/doc/ddpm.png">
 
 The design is implemented in [myHDL](https://myhdl.org/), and the verification environment leverages [PuEDA](https://github.com/bat52/pueda).
 
@@ -41,7 +41,7 @@ When clocking the chip with a clock frequency of 12.5kHz, the frequency of the s
 
 <img src="https://github.com/bat52/tt03-ddpm-pwm/blob/main/src/octave/timedomain.png">
 
-The different designs should achieve an ENOB of 9bit in the band 0-40Hz, with different
+The different designs should achieve an ENOB of 8 bits in the band 0-40Hz, with different
 level of out-of-band emission between each other, as reported below.
 
 <img src="https://github.com/bat52/tt03-ddpm-pwm/blob/main/src/octave/freqdomain.png">
