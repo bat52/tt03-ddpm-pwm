@@ -36,7 +36,7 @@ documentation:
         2) Dyadic Digital Pulse Modulation (DDPM)
         3) Sigma-Delta (SD)
 
-      PWM is arguably the simplest and possibly most widespread PDM techmology that is praised for its low complexity.      
+      PWM is arguably the simplest and possibly most widespread PDM technology that is praised for its low complexity.      
 
       DDPM [1][2][3] is a type of digital modulation technique in which the pulse width are quantized in a dyadic manner, 
       meaning that they are quantized in powers of two, which allows for efficient implementation using binary arithmetic. 
@@ -61,7 +61,7 @@ documentation:
       (https://www.researchgate.net/publication/309012492_All-Digital_High_Resolution_DA_Conversion_by_Dyadic_Digital_Pulse_Modulation/citations)
       - [3] "Spectral characteristics of DDPM streams and their application to all‐digital amplitude modulation", Crovetti
       https://www.researchgate.net/publication/348654600_Spectral_characteristics_of_DDPM_streams_and_their_application_to_all-digital_amplitude_modulation
-      
+
 # Instructions on how someone could test your project, include things like what buttons do what and how to set the clock if needed
   how_to_test:  |
       Explain how to test your project
@@ -69,7 +69,7 @@ documentation:
 # A description of what the inputs do
   inputs:               
     - clock
-    - reset
+    - resetn
     - pwm_in[0]
     - pwm_in[1]
     - pwm_in[2]
@@ -81,11 +81,11 @@ documentation:
     - pwm       / segment a
     - ddpm      / segment b
     - sd        / segment c
-    -           / segment d
+    - 0'b1      / segment d
     - pwm_sine  / segment e
     - ddpm_sine / segment f
     - sd_sine   / segment g
-    -           / dot
+    - 0'b1      / dot
 
 # The following fields are optional
   tag:          "pwm, ddpm, sigma-delta, dac"     # comma separated list of tags: test encryption, experiment, clock, animation, utility, industrial, pwm, fpga, alu, microprocessor, risc, riscv, sensor, signal generator, fft, filter, music, bcd, sound, serial, timer, random number generator, calculator, decoder, counter, puzzle, multiplier, game, oscillator,
@@ -93,4 +93,4 @@ documentation:
   discord:      ""              # Your discord handle, used for communication and automatically assigning tapeout role after a submission
   doc_link:     "https://github.com/bat52/tt03-ddpm-pwm/blob/main/README.md"   # URL to longer form documentation, eg the README.md in your repository
   clock_hz:     12500           # Clock frequency in Hz (if required)
-  picture:      ""              # relative path to a picture in your repository
+  picture:      "doc/ddpm.svg"  # relative path to a picture in your repository
