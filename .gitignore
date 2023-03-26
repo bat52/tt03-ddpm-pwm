@@ -15,3 +15,4 @@ src/myhdl/work_*
 src/myhdl/tb.gtkw
 src/myhdl/chatgpt/*
 src/myhdl/sd_bak.py
+src/build/*

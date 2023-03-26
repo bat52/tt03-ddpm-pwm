@@ -146,5 +146,5 @@ if 1
   fh = plot_freq(sd1_s,fs,figno);  
   legend('pwm', 'ddpm', 'sd1','Location','southwest');
   saveas(fh, 'freqdomain', 'png');
-  close(fh)
+  % close(fh)
 end
