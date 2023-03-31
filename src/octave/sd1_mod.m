@@ -15,10 +15,18 @@ function sd_out = sd1_mod( inval,  nbits, nbits_out)
   minval = 0;
     
   for idx = 2:length(inval)
-      delta(idx)  = saturated_adder( inval(idx),  qerr(idx-1),   maxval, minval);
+      if 1
+        delta(idx)  = saturated_adder( inval(idx),  qerr(idx-1),   maxval, minval);
+      else
+        % just slightly faster
+        delta(idx)  = inval(idx) + qerr(idx-1);
+      end
       qerr(idx)   = bitand( delta(idx), 2^(nbits-nbits_out) - 1);
       sd_out(idx) = bitshift(delta(idx),-(nbits-nbits_out));
   end
+  
+  % check for saturation
+  saturation_check(delta, maxval, minval);  
     
   if 1
     fh = figure(541);
@@ -53,11 +61,35 @@ function ret = saturated_adder(a, b, maxval, minval)
   
     ret = a + b;
     
+    if ret > maxval
+      ret = maxval;
+    else
+      if ret < minval
+        ret = minval;
+      end
+    end
+   
+end
+
+function ret = saturated_adder_vec(a, b, maxval, minval)
+  
+    ret = a + b;
+    
     maxidx = find(ret > maxval);
     ret(maxidx) = maxval * ones(size(maxidx));
     
     minidx = find(ret < minval);
     ret(maxidx) = minval * ones(size(maxidx));
+   
+end
+
+function saturation_check(s, maxval, minval)
+  
+    maxidx = find(s > maxval);
+    assert(isempty(maxidx));
+        
+    minidx = find(s < minval);
+    assert(isempty(maxidx));
    
 end
 

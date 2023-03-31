@@ -3,7 +3,9 @@
 clear all;
 close all;
 
-pkg load signal
+profile off;
+profile clear;
+profile on;
 
 % inputs
 fclock = 12.5; # khz
@@ -16,8 +18,16 @@ else
   nbit_pwm_phase = 8;
   nbit_sine_phase = 8;
   nbit_pwm_amplitude = 8;
-  nperiods = 5;
+  nperiods = 5; 
 end
+
+if 0
+  nbit_pwm_phase = 10;
+  nbit_sine_phase = 6;
+  nbit_pwm_amplitude = nbit_pwm_phase;
+  nperiods = 3; 
+end
+
 nbit_sd_amplitude = nbit_pwm_amplitude + 2;
 
 % parameters
@@ -66,16 +76,16 @@ if 0
   xlim((1/fclock)*[0 (2^nbit_phase)-1]);
 end
 
-if 0 
-  figure(111);
-  stairs(t,s);
-  hold on; grid on;
-  stairs(t,max(s)*sd1_s,'r');
-  xlabel('time [ms]');
-  ylabel('amplitude [LSB]');
-  legend('quant sine','sd1');
-  xlim((1/fclock)*[0 (2^nbit_phase)-1]);
-end
+##if 0 
+##  figure(111);
+##  stairs(t,s);
+##  hold on; grid on;
+##  stairs(t,max(s)*sd1_s,'r');
+##  xlabel('time [ms]');
+##  ylabel('amplitude [LSB]');
+##  legend('quant sine','sd1');
+##  xlim((1/fclock)*[0 (2^nbit_phase)-1]);
+##end
 
 if 1 
   fh = figure(1111);
@@ -108,7 +118,7 @@ if 1
   xlim((1/fclock)*[0 (2^nbit_phase)-1]);
   
   saveas(fh, 'timedomain', 'png');
-  close(fh)
+  % close(fh)
 end
 
 %% freq domain plots %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -148,3 +158,8 @@ if 1
   saveas(fh, 'freqdomain', 'png');
   % close(fh)
 end
+
+profile off;
+prof = profile ('info');
+profshow(prof);
+% profexplore(prof);
